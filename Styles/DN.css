@@ -141,13 +141,64 @@ a:hover.ChartButton
     float:right;
 }
 
-.CChart {
+/* Bar charts */
+.BChart {
   fill:#0072BC; /*2B4661;*/                                                                 
 }
-.CChart1 {
+.BChart1 {
   fill:#2c8ac1; /* Blue */
 }
-.CChart2 {
+.BChart2 {
+  fill:#e77b37; /* Orange */
+}
+.BChart3 {
+  fill:#d23f67; /* Pink */
+}
+.BChart4 {
+  fill:#f7bb16; /* Yellow */
+}
+.BChart5 {
+  fill:#505050; /* Grey */
+}
+
+.BChartHover {
+  fill:#f7bb16;
+}
+.BChartDisabled {
+  fill:#cccccc;
+}
+.BChartClicked {
+  fill:#ff00ff;
+}
+.BChartText
+{
+  fill:#808080;
+  font-size:11px;
+  text-anchor:left;
+}
+.BCAxis
+{
+    fill:#505050;
+    font-size:11px;
+}
+.BCAxis path,
+.BCAxis line {
+  fill:none;
+  stroke:#505050;
+  shape-rendering:crispEdges;
+}
+.y.BCAxis path {
+  display:none;
+}
+
+/* Column charts */
+.CChart {
+  fill:#2c8ac1; 
+}
+.CChart1 {
+    fill: #2c8ac1; /* Blue */
+}
+CChart2 {
   fill:#e77b37; /* Orange */
 }
 .CChart3 {
@@ -157,83 +208,40 @@ a:hover.ChartButton
   fill:#f7bb16; /* Yellow */
 }
 .CChart5 {
-  fill:#505050; /* Grey */
-}
-
-.CChartHover {
-  fill:#f7bb16;
+    fill: #505050; /* Grey */
 }
 .CChartDisabled {
   fill:#cccccc;
 }
+.CChartHover {
+  fill:#f7bb16;
+}
 .CChartClicked {
   fill:#ff00ff;
 }
-.CChartText
-{
-  fill:#808080;
-  font-size:11px;
-  text-anchor:left;
+.CChartGhosting {
+  fill:#000000;  
+  opacity: 0.15;
 }
 .CCAxis
 {
+    stroke:none;
     fill:#505050;
     font-size:11px;
 }
 .CCAxis path,
 .CCAxis line {
   fill:none;
-  stroke:#505050;
-  shape-rendering:crispEdges;
-}
-.y.CCAxis path {
-  display:none;
-}
-/* Bar charts */
-.BChart {
-  fill:#2c8ac1; 
-}
-BChart2 {
-  fill:#e77b37; /* Orange */
-}
-.BChart3 {
-  fill:#d23f67; /* Pink */
-}
-.BChart4 {
-  fill:#f7bb16; /* Yellow */
-}
-.BChartDisabled {
-  fill:#cccccc;
-}
-.BChartHover {
-  fill:#f7bb16;
-}
-.BChartClicked {
-  fill:#ff00ff;
-}
-.BChartGhosting {
-  fill:#000000;  
-  opacity: 0.15;
-}
-.BCAxis
-{
-    stroke:none;
-    fill:#505050;
-    font-size:11px;
-}
-.BCAxis path,
-.BCAxis line {
-  fill:none;
   stroke:#dddddd;
   stroke-width:1px;
   shape-rendering:crispEdges;
 }
-.BCAxisGrid line {
+.CCAxisGrid line {
   stroke: #eeeeee;
   stroke-opacity: 0.7;
   shape-rendering: crispEdges;
 }
-.BCAxisGrid path {
+.CCAxisGrid path {
   stroke-width: 0;
 }
 
@@ -344,6 +352,9 @@ PCRect {
 }
 PCRect.disabled {
     fill:transparent !important;
+}
+.PChartClicked {
+    fill: #ff00ff;
 }
 h1 {
     font-size:14px;
@@ -620,5 +631,7 @@ tspan.SankeyTxtNum, text.SankeyTxtNum {
 .NumWrapper {
     text-align:right;
 }
+
+
 
 
