@@ -62,6 +62,8 @@ function DN() {
     this.defaultSankeyMargins = { top: 10, right: 10, bottom: 5, left: 10 };
     // Column chart defaults
     this.defaultColumnChartMargins = { top: 5, right: 0, bottom: 0, left: 60 };
+    // the maxNumToVisualise
+    this.defaultSankeyMaxNumToVisualise = 10;
 
     // General title height default
     this.defaultTitleHeight = 27;
@@ -799,6 +801,8 @@ DNChartGroup.prototype.SetSingleOptionDimension = function (chartID, defaultValu
 
     // then add it to the dimensions from the start ...
     // Dec-19 - with the responsive resizing of the charts - we need to check if the given chart ID exists already
+    // Jan-20 XXX - lets try not doing this at all
+    
     if (IsDefined(this.GetFilterParameters(chartID))) {
         for (let i = 0; i < this.objsToFilter.length; i++) {
             if (this.objsToFilter[i].ChartID === chartID) {
@@ -813,6 +817,7 @@ DNChartGroup.prototype.SetSingleOptionDimension = function (chartID, defaultValu
             Objs: [defaultValue]
         });
     }
+    
 };
 //-----------------------------------------------------------------------------------------------------------------------------------------------------
 /*
@@ -857,25 +862,7 @@ DNChartGroup.prototype.GetFilterParameters = function (id) {
 
     return filterParams;
 };
-//-----------------------------------------------------------------------------------------------------------------------------------------------------
-// Filters the data on the single option dimension
-DNChartGroup.prototype.FilterBySingleOptionDimension = function () {
 
-    //--01-- Lets get the single option dimension from the objsToFilter - this is now necessary as this may have been changed in the page URL parameters
-    let currentList = this.ObjectListToFilter(this.singleOptionDimension.ID, null);
-
-    let valToFilter = this.singleOptionDimension.DefaultVal;
-    if (IsDefined(currentList) && currentList.length > 0) {
-        valToFilter = currentList[0];
-    }
-
-    //--02-- then do the filtering based on the defaultVal or the first object in the list, if it has been set.
-    this.DoFilter(this.singleOptionDimension.ID + "_" + valToFilter, false);
-
-    //--03-- And then highlight the object - Potentially no longer required because of other changes
-    this.ToggleSelected(this.singleOptionDimension.ID, valToFilter, true);
-
-};
 
 //-----------------------------------------------------------------------------------------------------------------------------------------------------
 // Sets up the default list of objects to filter on.  This is used for stock figures.  This is a list of chart IDs with no additional attribution...
@@ -938,7 +925,7 @@ DNChartGroup.prototype.ObjectsToFilterContainDynamicDimensions = function () {
 
 
 //-----------------------------------------------------------------------------------------------------------------------------------------------------
-// Sets up the default list of objects to filter on.  This is used for stock figures.  This is a list of chart IDs and the defaultValue to be used for the form { ID:"YE", DefaultVal:1929}
+// Sets the dropshadow css class to apply to the chart elements
 DNChartGroup.prototype.SetDropShadow = function (doShow) {
 
     this.showDropShadow = doShow;
@@ -954,14 +941,14 @@ DNChartGroup.prototype.SetDropShadow = function (doShow) {
 
 
 //-----------------------------------------------------------------------------------------------------------------------------------------------------
-// Aug-19 - The Other value - used to force the display of Other values to the end of the display list, even if the specific element is to be sorted by value
+// The Other value - used to force the display of Other values to the end of the display list, even if the specific element is to be sorted by value
 DNChartGroup.prototype.SetOtherValues = function (otherValueList) {
     this.otherValues = otherValueList;
 };
 
 //-----------------------------------------------------------------------------------------------------------------------------------------------------
-// Aug-19 - The Other value - used to force the display of Other values to the end of the display list, even if the specific element is to be sorted by value
-DNChartGroup.prototype.AddDynamicallyGeneratedDataAttribute = function (sourceColID, targetColID, countColID, maxNumValues, otherID) {
+// The dynamically generated data
+DNChartGroup.prototype.AddDynamicallyGeneratedDataVariable = function (sourceColID, targetColID, countColID, maxNumValues, otherID) {
 
     // Could extend to include a function name to do the conversion from source to target.
     this.dynamicallyGeneratedDataAttributeList.push({
@@ -971,6 +958,19 @@ DNChartGroup.prototype.AddDynamicallyGeneratedDataAttribute = function (sourceCo
         MaxNumValues: maxNumValues,
         OtherID: otherID
     });
+};
+//-----------------------------------------------------------------------------------------------------------------------------------------------------
+// We use the targetColID as the primary key as in theory the source could be the source for more than one columns, 
+// but it can't logically follow that a target column could have more than source, as it would just be reset.
+DNChartGroup.prototype.SetDynamicallyGeneratedDataAttribute = function (targetColID, attrName, attrValue) {
+
+    if (IsDefined(this.dynamicallyGeneratedDataAttributeList)) {
+        let ddObj = dn.GetObjInList(this.dynamicallyGeneratedDataAttributeList, "TargetColumnID", targetColID);
+        // If it exists, lets set it
+        if (IsDefined(ddObj)) {
+            ddObj[attrName] = attrValue;
+        }
+    }
 };
 
 
@@ -1060,17 +1060,19 @@ DNChartGroup.prototype.DoFilter = function (objID, doReset) {
             foundObj = IsDefined(dn.GetObjInList( currentList, null, valID));
         }
 
-        // if it existed, then remove it, otherwise add it
+        // if it existed, then remove it, otherwise add it; and a special case for single option dimensions, we toggle off the previously selected option and reset the value to be the selected element ID
         if (IsDefined(cg.singleOptionDimension) && cg.singleOptionDimension.ID === graphicID) {
             this.ToggleSelected(graphicID, currentList[0]);
             currentList = [valID];
 
         } else if (foundObj === true) {
+            // Filter the list to remove the given element ID
             currentList = currentList.filter(function (value, index, arr) {
                 return value !== valID;
             });
 
         } else {
+            // Add the given element ID
             currentList.push(valID);
         }
 
@@ -1081,7 +1083,7 @@ DNChartGroup.prototype.DoFilter = function (objID, doReset) {
         // WARNING - at this stage the filtered data will be potentially WRONG for dynamically generated data as this has not yet been regenerated
         cg.filteredJSData = cg.GetFilteredData(null); //, null);
 
-        //--4-- July-2018 - and show / hide the bright pink toggle option
+        //--4-- July-2018 - and show / hide the bright pink toggle option for the selected element ID
         cg.ToggleSelected(graphicID, valID);
 
     } else {
@@ -1388,39 +1390,19 @@ DNChartGroup.prototype.GetFilteredData = function (dataVariablesToIgnore) { //da
 */
 DNChartGroup.prototype.GetFilteredDataBase = function (objListToFilter, dataVariablesToIgnore) { // dataFieldToIgnore1, dataFieldToIgnore2) {
 
-//********************************* Is this the key - we want though to keep all the other data too though
-
-    // Lets check each selected data variable in the list of  selected variables to see whether they are dynamic attributes...
+    //--01-- Lets check each selected data variable in the list of  selected variables to see whether they are dynamic attributes...
     let clonedObjListToFilter = this.AddDynamicVariablesInObjectIDsToFilter(objListToFilter);
 
+    //--02-- Then lets do the filtering on this basis...
+    return this.DoDataFiltering(clonedObjListToFilter, dataVariablesToIgnore);
 
-    let localFilteredJSData = this.DoDataFiltering(clonedObjListToFilter, dataVariablesToIgnore);
-
-    // OK - this is the problem - for dynamically generated data - for values that drop out of the top 10 or 20 in previous years ( or specific filters),
-    // they cannot be found in the aggregated dynamically generated data as they fall into the other bracket...,
-    // So we need to swap out the dynamic "summary" parameter for the original complete data and search the non-dynamically generated data (which will be complete).
-//XXX    if (!IsDefined(localFilteredJSData) || localFilteredJSData.length === 0) {
-
-        //--00-- Lets provide a warning in this instance...
-//XXX        console.warn("DN: No filtered data found for the selected filters; checking to see if any filters were dynamic variables and refiltering if so");
-
-        //--01-- Clone the object list - note there are some cases, like in SetSummary where the object list provided will not be the current one stored in the chart group
-        // e.g. When doing a comparison with the previous year in SetSummary
-        //--02-- Look for any dynamic variables, replace the target variable ID with the source variable ID
-//XXX        let { foundAtLeastOneDynamicDimension, clonedObjsToFilter } = this.ReplaceDynamicVariablesInObjectIDsToFilter(objListToFilter);
-
-        //--03-- If we found any dynamic dimensions, then we re-filter the data...
-//XXX        if (foundAtLeastOneDynamicDimension) {
-//XXX            let localFilteredJSData = this.DoDataFiltering(clonedObjsToFilter, dataVariablesToIgnore); // dataFieldToIgnore1, dataFieldToIgnore2);
-//XXX        }
-//XXX    }
-
-    return localFilteredJSData;
 };
 
 //-----------------------------------------------------------------------------------------------------------------------------------------------------
 /*
-    The filtering is based on the selections in the objsToFilter global array.
+    The filtering is based on the selections in the objsToFilter global array.  
+    Independent variables are filtered as AND, elements within the same variable are filtered as OR.
+    For dynamic dimensions, a special case exists where we include both the source and target of dynamic dimensions as OR.
     One or two fields can be ignored from the filtering, which is critical so that the Sankey diagrams are effective ...
     listToFilter is an array of IDs and linked objects identifiers of this form - it is stored in a global variable called objsToFilter
     [ {ID:1234, Objs:[a,b,c]},...]
@@ -1428,10 +1410,7 @@ DNChartGroup.prototype.GetFilteredDataBase = function (objListToFilter, dataVari
     DNChartGroup.prototype.DoDataFiltering = function (objListToFilter, dataVariablesToIgnore) { //dataFieldToIgnore1, dataFieldToIgnore2) {
 
     let charts = this.charts;
-
-        //console.log("DoDataFiltering: ", objListToFilter, dataVariablesToIgnore);
-
-
+        
     //--00-- Refilter the data using the original data - IDs from the same chart should be filtered as OR and IDs from different charts should be filtered as AND ...
     // March 2019 - multivariate column charts are treated as AND, i.e. the intersection, as these are separate variables shown on the same chart...
     let localFilteredJSData = this.origJSData.filter(function (v) {
@@ -1444,11 +1423,8 @@ DNChartGroup.prototype.GetFilteredDataBase = function (objListToFilter, dataVari
 
             //--01-- See whether or not we need to include this data variable in the filtering.
             let doFilterDataVariable = !IsDefined(dataVariablesToIgnore) || !IsDefined(dn.GetObjInList(dataVariablesToIgnore, null, v1.ID));
-//            console.log(v1.ID, doFilterDataVariable);
-            if (doFilterDataVariable) {
-//            if ((!IsDefined(dataFieldToIgnore1) || dataFieldToIgnore1 === "" || dataFieldToIgnore1 !== v1.ID) &&
-//                (!IsDefined(dataFieldToIgnore2) || dataFieldToIgnore2 === "" || dataFieldToIgnore2 !== v1.ID)) {
 
+            if (doFilterDataVariable) {
                 //--02-- March 2019 - check if this is a multi variate column chart.  If so, we actually want the valID to become the "graphic ID"
                 let isMultiVariate = IsDefined(charts.find(x => (x.ChartID === v1.ID && x.ChartType === 700)));
 
@@ -1461,8 +1437,6 @@ DNChartGroup.prototype.GetFilteredDataBase = function (objListToFilter, dataVari
 
                 } else {
                     //--04-- Otherwise, we can get the value and then just use the array.prototype.find syntax.
-                    //let tempVal = dn.GetValue(v1.ID, v);
-                    // using the array.prototype.find to find a value in an array ...
                     let tempFound = (v1.Objs.length === 0 || IsDefined(dn.GetObjInList(v1.Objs, null, dn.GetValue(v1.ID, v))));
 
                     // Jan-20 - if this is dynamic data, lets check here on the source data too (it's like an extended OR)
@@ -2028,7 +2002,7 @@ DNChartGroup.prototype.RedrawAllCharts = function (activeChartID, doReset, force
                     //console.debug(c.ChartID + " - Option 4 - pivot dimension, with the stock dimension active, so redraw using all the information available for the specific variable of the stock dimension");
 
                 } else {                                                                                                                                                                        //-------------------------------------------------------
-
+                    // The default
                     cg.filteredJSData = case1FilteredData;
                     doRedraw = true;
 
@@ -2120,7 +2094,7 @@ DNChartGroup.prototype.RedrawAllCharts = function (activeChartID, doReset, force
                         c.DoColumnChartGhosting(c.ChartID, c.ChartData, fData);
 
                     } else {
-                        console.warn("DN: Unsupported chart type for ghosting of stock dimension.");
+                        console.warn("dn.js - Unsupported chart type for ghosting of stock dimension.");
                     }
                 }
 
@@ -2137,6 +2111,7 @@ DNChartGroup.prototype.RedrawAllCharts = function (activeChartID, doReset, force
         cg.filteredJSData = (filtersContainDynamicDimensions === true) ?
             cg.GetFilteredData(null) : //, null) :
             tempData;
+
 
         //--11-- Toggle the selected options on all the options that are currently set, if this is a stock visualisation or it contains pivot dimensions and it is not a reset
         if (activeChartIsSOD || activeChartIsPivotDimension) {
@@ -2728,7 +2703,7 @@ DNChart.prototype.DrawBarChart = function (chartData) {
     }
 
     // Jul-18 - Allow custom styles to be set for the bars
-    customStyle = (! IsDefined(customStyle) || customStyle === "") ? "CChart" : customStyle;
+    customStyle = (! IsDefined(customStyle) || customStyle === "") ? "BChart" : customStyle;
 
     maxWidth = (!IsDefined(maxWidth) || maxWidth === 0) ? 490 : maxWidth;
     maxHeight = (!IsDefined(maxHeight) || maxHeight === 0) ? 300 : maxHeight;
@@ -2798,12 +2773,12 @@ DNChart.prototype.DrawBarChart = function (chartData) {
         .attr("height", barHeight - barGap)
         .attr("rx", 1)
         .attr("ry", 1)
-        .attr("class", "CChartDisabled " + cg.dropShadowCSS)
+        .attr("class", "BChartDisabled " + cg.dropShadowCSS)
         .style('cursor', 'pointer')
 
         .on("mouseover", function (v) {
             focus.style("display", null);
-            d3.select("#" + chartID + "_" + v.ID + "_2").attr("class", "CChartHover");
+            d3.select("#" + chartID + "_" + v.ID + "_2").attr("class", "BChartHover");
         })
         .on("mouseout", function (v) {
             focus.style("display", "none");
@@ -2855,7 +2830,7 @@ DNChart.prototype.DrawBarChart = function (chartData) {
         .attr("ry", 1)
         .style("pointer-events", "none")
         .style("display", "none")
-        .attr("class", "CChartClicked");
+        .attr("class", "BChartClicked");
 
     // draw the hover over group of elements
     let focus = this.DrawHoverOver(svg);
@@ -2865,7 +2840,7 @@ DNChart.prototype.DrawBarChart = function (chartData) {
         .attr("x", function (d) { return x(d.Count) - 2 + yAxisCrossing; })
         .attr("y", barHeight / 2)
         .attr("dx", ".75em")
-        .attr("class", "CChartText")
+        .attr("class", "BChartText")
         .text(function (d) { return dn.NumberWithCommas(d.Count); })
         ;
 
@@ -2874,7 +2849,7 @@ DNChart.prototype.DrawBarChart = function (chartData) {
         .attr('x', yAxisCrossing - 4)
         .attr('y', barHeight / 2)
         .attr('text-anchor', 'end')
-        .attr("class", "y CCAxis")
+        .attr("class", "y BCAxis")
         .text(function (d) { return d.Title + " -"; })
         .style('cursor', 'pointer')
         .on("click", function (d, i) {
@@ -2936,7 +2911,7 @@ DNChart.prototype.DrawColumnChart = function (chartData) {
     }
 
     // Jul-18 - Allow custom styles to be set for the bars
-    customStyle = (! IsDefined(customStyle) || customStyle === "") ? "BChart" : customStyle;
+    customStyle = (! IsDefined(customStyle) || customStyle === "") ? "CChart" : customStyle;
 
     maxWidth = (! IsDefined(maxWidth) || maxWidth === 0) ? 490 : maxWidth;
     maxHeight = (!IsDefined(maxHeight) || maxHeight === 0) ? 300 : maxHeight;
@@ -3001,7 +2976,7 @@ DNChart.prototype.DrawColumnChart = function (chartData) {
     var xAxis = d3.axisBottom(x).ticks(20);
 
     svg.append("g")
-        .attr("class", "BCAxis")
+        .attr("class", "CCAxis")
         .attr("transform", "translate(0," + (chartHeight - xAxisCrossing) + ")")
         .call(xAxis)
         .selectAll("text")
@@ -3027,7 +3002,7 @@ DNChart.prototype.DrawColumnChart = function (chartData) {
 
     // Add the Y Axis gridlines
     svg.append("g")
-        .attr("class", "BCAxisGrid")
+        .attr("class", "CCAxisGrid")
         .call(make_y_gridlines()
             .tickSize(-chartWidth)
             .tickFormat("")
@@ -3035,7 +3010,7 @@ DNChart.prototype.DrawColumnChart = function (chartData) {
 
     // Add the Y Axis
     svg.append("g")
-        .attr("class", "BCAxis")
+        .attr("class", "CCAxis")
         .call(yAxis);
 
 
@@ -3054,12 +3029,12 @@ DNChart.prototype.DrawColumnChart = function (chartData) {
         .attr("height", function (d) { return (d.Count === 0) ? 0 : chartHeight - y(d.Count) - xAxisCrossing; })
         .attr("rx", 1)
         .attr("ry", 1)
-        .attr("class", "BChartDisabled " + cg.dropShadowCSS)
+        .attr("class", "CChartDisabled " + cg.dropShadowCSS)
         .style('cursor', 'pointer')
 
         .on("mouseover", function (v) {
             focus.style("display", null);
-            d3.select("#" + chartID + "_" + v.ID + "_2").attr("class", "BChartHover");
+            d3.select("#" + chartID + "_" + v.ID + "_2").attr("class", "CChartHover");
         })
         .on("mouseout", function (v) {
             focus.style("display", "none");
@@ -3094,7 +3069,7 @@ DNChart.prototype.DrawColumnChart = function (chartData) {
     // The order for drawing is important, as we want these to appear behind the selected bars...
     if (isStockVisualisation === true) {
         // We use _5 as _4 has been used for text bar labels in e.g. the column charts.  This leaves scope for consistent extension here.
-        // Append the blocks that will be the bars of the chart
+        // Append the blocks that will be the ghosted columns of the chart
         bar.append("rect")
             .attr("id", function (d) { return chartID + "_" + d.ID + "_5"; })
             .attr("y", chartHeight - xAxisCrossing - 1)  //.attr("y", function (d) { return y(d.Count); })
@@ -3104,7 +3079,7 @@ DNChart.prototype.DrawColumnChart = function (chartData) {
             .attr("ry", 1)
             .attr("data-a", function (d) { return d.Count; }) // Added Jan-20 to improve the hoverover numbers...
             .style("pointer-events", "none")
-            .attr("class", "BChartGhosting");
+            .attr("class", "CChartGhosting");
     }
 
     // Append the blocks that will be the selected, most visible, bars of the chart
@@ -3129,7 +3104,7 @@ DNChart.prototype.DrawColumnChart = function (chartData) {
         .attr("ry", 1)
         .style("pointer-events", "none")
         .style("display", "none")
-        .attr("class", "BChartClicked");
+        .attr("class", "CChartClicked");
 
 
     //-----7----- Show the slider
@@ -3138,7 +3113,7 @@ DNChart.prototype.DrawColumnChart = function (chartData) {
         // Append the div wrapper - there is an issue with the maxHeight versus chartHeight above, so we need to position this absolutely over the bar chart itself.
         // This is used in the createD3RangeSlider function below (see that the ID is passed in)
         let sliderDiv = d3.select("#" + chartID + "Div").append("div")
-            .attr("class", "BCSliderWrapper")
+            .attr("class", "CCSliderWrapper")
             .style("top", (maxHeight - sliderHeight) + "px")
             .style("width", chartWidth + 35 + "px")
             .attr("id", chartID + "Slider");
@@ -3533,7 +3508,7 @@ DNChart.prototype.DrawPieChart = function (chartData) {
         .attr("ry", 1)
         .style("pointer-events", "none")
         .style("display", "none")
-        .attr("class", "CChartClicked");
+        .attr("class", "PChartClicked");
 
     // The text ...
     legend.append('text')
@@ -4551,9 +4526,9 @@ DNChart.prototype.UpdateColumnChart = function (chartID, chartFullData, chartFil
 
             //--2b-- make a pretty transition to the new value ...
             d3.select("#" + tempObjIDtoMod)
+                .attr("data-a", filteredCount) // Added Jan-20 to improve the hoverover numbers... we want to ensure that this gets actioned immediately
                 .transition().duration(this.GetTransitionDuration())  // originally 750
                 .attr("y", newY)
-                .attr("data-a", filteredCount) // Added Jan-20 to improve the hoverover numbers...
                 .attr("height", newHeight);
         }
     }
@@ -4764,9 +4739,9 @@ DNChart.prototype.DoColumnChartGhosting = function (chartID, chartFullData, char
 
             //--2b-- make a pretty transition to the new value ...
             d3.select("#" + tempObjIDtoMod)
+                .attr("data-a", filteredCount) // Added Jan-20 to improve the hoverover numbers... we want to make sure that this gets actioned immediately
                 .transition().duration(this.GetTransitionDuration())  // originally 750
                 .attr("y", newY)
-                .attr("data-a", filteredCount) // Added Jan-20 to improve the hoverover numbers...
                 .attr("height", newHeight);
         }
     }
@@ -4848,14 +4823,15 @@ DNURLEditor.prototype.URLApplyFilters = function (chartIDList, currentURL, dnCha
         //--03b-- - If no parameters at all have been returned, and there is a single option dimension set, then lets get out of here
         let numParamsSet = 0;
         if (IsDefined(dnChartGroup.singleOptionDimension)) {
-            let strSearchParams = currentURL.searchParams.toString();
+            // We go through each chart and see if any parameters related to this were set.
             for (let i = 0; i < chartIDList.length; i++) {
-                if (strSearchParams.indexOf("&" + chartIDList[i]) !== -1 || strSearchParams.indexOf("?" + chartIDList[i]) !== -1) {
+                let cValListStr = currentURL.searchParams.get(chartIDList[i]);
+                if (IsDefined(cValListStr) && cValListStr !== "") {
                     numParamsSet++;
                 }
             }
             if (numParamsSet === 0) {
-                console.log("dn.js - No URL parameters were set, and there is a stock dimension, so not applying the URL filters");
+                console.log("dn.js - No URL parameters were set, and there is a stock dimension, so not applying the URL filters", currentURL);
                 return activeChartID;
             }
         }
@@ -4864,7 +4840,6 @@ DNURLEditor.prototype.URLApplyFilters = function (chartIDList, currentURL, dnCha
         for (let i = 0; i < chartIDList.length; i++) {
 
             let cID = chartIDList[i];
-            let numNewParameters = 0;
             let cValList = [];
 
             //--04a-- Identify what kind of chart this is - Stock single option, pivot or normal (the default is 3 == normal)
@@ -4883,9 +4858,6 @@ DNURLEditor.prototype.URLApplyFilters = function (chartIDList, currentURL, dnCha
 
                 // Ensure the numeric parameters are cast appropriately and count the number of parameters
                 if (IsDefined(cValList) && cValList.length > 0) {
-
-                    numNewParameters = cValList.length;
-
                     for (let j = 0; j < cValList.length; j++) {
                         // Sep-19 - Use regexp to see if this is a number, and if it is lets parse it as such...
                         if (/^\d+$/.test(cValList[j]) === true) {
@@ -4895,12 +4867,8 @@ DNURLEditor.prototype.URLApplyFilters = function (chartIDList, currentURL, dnCha
                 }
             }
 
-            //--04c-- And get the current list for this chart ID from the objListToFilter
-//            let prevCount = 0;
+            //--04c-- And get the current/previous list (depends on your viewpoint right?!) for this chart ID from the objListToFilter
             let prevObjList = dnChartGroup.ObjectListToFilter(cID);
-            if (IsDefined(prevObjList)) {
-                prevCount = prevObjList.length;
-            }
 
             //--04d-- This is the heart of the matter - we difference the two arrays to identify the union minus the intersection - i.e. the values unique to one list or the other
             let difference = [];
@@ -4920,7 +4888,7 @@ DNURLEditor.prototype.URLApplyFilters = function (chartIDList, currentURL, dnCha
                             cValList.filter(x => !prevObjList.includes(x)));
             }
             // Check it...
-            //console.log(cID, prevCount, numNewParameters, difference);
+            //console.log(cID, "difference: ", difference);
 
             //--04e-- Act on the difference if it contains more than one value; typically this will probably only contain one value, but it may contain more
             // E.g. changing a single option dimension would result in each array having one different value...
@@ -4932,9 +4900,15 @@ DNURLEditor.prototype.URLApplyFilters = function (chartIDList, currentURL, dnCha
                     activeChartID = cID;
                 }
 
-                //--ACTION 2-- Toggle the selected object on the chart
+                //--ACTION 2-- Toggle the selected object(s) on the chart
                 if (IsDefined(doToggleSelectedObjects) && doToggleSelectedObjects === true) {
-                    dnChartGroup.ToggleSelected(cID, difference[0]);
+                    if (dnChartGroup.IsSingleOptionDimension(cID, null)) {
+                        // We ignore the toggling if this is a single option dimension... as this will be well handled in chartGroup.ApplyFilter
+                    } else {
+                        for (let j = 0; j < difference.length; j++) {
+                            dnChartGroup.ToggleSelected(cID, difference[j]);
+                        }
+                    }
                 }
 
                 //--ACTION 3-- Update the objects to filter list so it is up-to-date

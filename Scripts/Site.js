@@ -5,7 +5,7 @@
     Jan 2020 - Key modification is to switch from relying on JQuery to D3.
 
     #########################################################################
-    Version:  January 2020 - v2.61
+    Version:  January 2020 - v2.63
     #########################################################################
     Copyright © 2004-2020 Data Nirvana Limited
 
@@ -24,7 +24,7 @@
 */
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-var jsVersion = 2.61;
+var jsVersion = 2.63;
 
 // Checks if this is being viewed in a mobile (or tablet context)
 // Useful browser check to help functionality to filter where there are STILL quirks!  Based on: http://stackoverflow.com/questions/11381673/detecting-a-mobile-browser
@@ -89,7 +89,6 @@ var isIE = (GetIEVersion() !== "");
 //-----------------------------------------------------------------------------------------------------------------------------------------------------
 // Our EasyModal widget for the session expiration...
 var emSesh = null;
-//var em = null; // new EasyModal({ overlayOpacity: 0.9 });
 
 
 //-----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -102,8 +101,20 @@ function IsDefined(variable) {
 // Get the browser width and height
 function WidthAndHeight() {
     //--00-- Get the width and height of the browser
-    let docWidth = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
-    let docHeight = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;
+    // Removed the window.innerwidth and inner height as these are not the right dimensions for mobile devices.
+    let docWidth = document.documentElement.clientWidth || document.body.clientWidth;
+    let docHeight = document.documentElement.clientHeight || document.body.clientHeight;
+
+    // Alternative approach - compare the innerWidth with the above to get the scale and set the view port
+    /*
+        let clientWidth = document.documentElement.clientWidth;
+        let clientHeight = document.documentElement.clientHeight;
+        let scale = Math.round(clientWidth * 10 / docWidth) / 10;
+
+        let viewport = document.querySelector("meta[name=viewport]");
+        viewport.setAttribute("content", "width=device-width, initial-scale=" + scale + ", maximum-scale=1.0, user-scalable=0");
+        console.log(docWidth, docHeight, scale);
+    */
 
     return { docWidth, docHeight };
 }
@@ -181,7 +192,6 @@ EasyModal.prototype.OpenModal = function () {
     // Create the wrapper
     let overlay = d3.select(this.overlayParent).select(".lean-overlay");
     if (overlay.empty()) {
-//        console.log("Was empty, creating");
         overlay = d3.select(this.overlayParent).append("div").attr("class", "lean-overlay");
 
         // hide on click on the overlay...
@@ -197,7 +207,6 @@ EasyModal.prototype.OpenModal = function () {
 
         // create the on key down function
         this.keyDownFunction = e => {
-//            console.log(e.keyCode);
             if (overlay.IsVisible && e.keyCode === 27) {
                 em.CloseModal();
             }
@@ -320,14 +329,10 @@ function ShowLockButtonsModal(customBackgroundCol) {
     InitialiseLockButtonsModal(customBackgroundCol);
 
     emLockScreen.OpenModal();
-//    $("#LBD").css("display", "inline");
-//    $("#LBD").trigger("openModal");
 }
 //--
 function HideLockButtonsModal() {
     emLockScren.CloseModal();
-//    $("#LBD").css("display", "none");
-//    $("#LBD").trigger("closeModal");
 }
 
 
@@ -645,10 +650,9 @@ function YearMonth() {
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 document.addEventListener("DOMContentLoaded", function (event) {
-
+    
     emSesh = new EasyModal({
         modalDivID: "SessDiv",
-//        autoOpen: false,
         overlayOpacity: 0.3,
         overlayColor: "#333",
         overlayClose: true,
@@ -658,12 +662,6 @@ document.addEventListener("DOMContentLoaded", function (event) {
 
     // Bind the Sess finish method to before unload to clean things up
     window.addEventListener("beforeunload", SessKeepAliveFinish);
-
-    // Test
-//        emSesh.OpenModal();
-    //StartSessTimeout();
-    //    ShowInfoSplash("Fingalalalwanga", "InfoClassSuccess");
-//    HideInfoSplash();
 
 });
 
