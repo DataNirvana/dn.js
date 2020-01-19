@@ -62,6 +62,7 @@ function DN() {
     this.defaultSankeyMargins = { top: 10, right: 10, bottom: 5, left: 10 };
     // Column chart defaults
     this.defaultColumnChartMargins = { top: 5, right: 0, bottom: 0, left: 60 };
+    this.defaultColumnChartMaxBarWidth = 40;
     // the maxNumToVisualise
     this.defaultSankeyMaxNumToVisualise = 10;
 
@@ -97,6 +98,11 @@ function DN() {
     this.mapTileURL = "";
     this.mapTileAccessToken = "";
 
+    // For the infosplash object that displays messages to the user
+    this.infoSplashDivID = "InfoSplashContent";
+    this.infoSplashCssClass = "InfoClassSuccess";
+    this.infoSplashTimeoutMS = 3000;
+
 }
 
 //-----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -116,6 +122,13 @@ DN.prototype.Chart = function () {
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 DN.prototype.URLEditor = function () {
     return new DNURLEditor();
+};
+
+//-----------------------------------------------------------------------------------------------------------------------------------------------------
+DN.prototype.IsMobile = function () {
+    var check = false;
+    (function (a) { if (/(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine|fennec|hiptop|iemobile|ip(hone|od)|iris|kindle|lge |maemo|midp|mmp|mobile.+firefox|netfront|opera m(ob|in)i|palm( os)?|phone|p(ixi|re)\/|plucker|pocket|psp|series(4|6)0|symbian|treo|up\.(browser|link)|vodafone|wap|windows ce|xda|xiino/i.test(a) || /1207|6310|6590|3gso|4thp|50[1-6]i|770s|802s|a wa|abac|ac(er|oo|s\-)|ai(ko|rn)|al(av|ca|co)|amoi|an(ex|ny|yw)|aptu|ar(ch|go)|as(te|us)|attw|au(di|\-m|r |s )|avan|be(ck|ll|nq)|bi(lb|rd)|bl(ac|az)|br(e|v)w|bumb|bw\-(n|u)|c55\/|capi|ccwa|cdm\-|cell|chtm|cldc|cmd\-|co(mp|nd)|craw|da(it|ll|ng)|dbte|dc\-s|devi|dica|dmob|do(c|p)o|ds(12|\-d)|el(49|ai)|em(l2|ul)|er(ic|k0)|esl8|ez([4-7]0|os|wa|ze)|fetc|fly(\-|_)|g1 u|g560|gene|gf\-5|g\-mo|go(\.w|od)|gr(ad|un)|haie|hcit|hd\-(m|p|t)|hei\-|hi(pt|ta)|hp( i|ip)|hs\-c|ht(c(\-| |_|a|g|p|s|t)|tp)|hu(aw|tc)|i\-(20|go|ma)|i230|iac( |\-|\/)|ibro|idea|ig01|ikom|im1k|inno|ipaq|iris|ja(t|v)a|jbro|jemu|jigs|kddi|keji|kgt( |\/)|klon|kpt |kwc\-|kyo(c|k)|le(no|xi)|lg( g|\/(k|l|u)|50|54|\-[a-w])|libw|lynx|m1\-w|m3ga|m50\/|ma(te|ui|xo)|mc(01|21|ca)|m\-cr|me(rc|ri)|mi(o8|oa|ts)|mmef|mo(01|02|bi|de|do|t(\-| |o|v)|zz)|mt(50|p1|v )|mwbp|mywa|n10[0-2]|n20[2-3]|n30(0|2)|n50(0|2|5)|n7(0(0|1)|10)|ne((c|m)\-|on|tf|wf|wg|wt)|nok(6|i)|nzph|o2im|op(ti|wv)|oran|owg1|p800|pan(a|d|t)|pdxg|pg(13|\-([1-8]|c))|phil|pire|pl(ay|uc)|pn\-2|po(ck|rt|se)|prox|psio|pt\-g|qa\-a|qc(07|12|21|32|60|\-[2-7]|i\-)|qtek|r380|r600|raks|rim9|ro(ve|zo)|s55\/|sa(ge|ma|mm|ms|ny|va)|sc(01|h\-|oo|p\-)|sdk\/|se(c(\-|0|1)|47|mc|nd|ri)|sgh\-|shar|sie(\-|m)|sk\-0|sl(45|id)|sm(al|ar|b3|it|t5)|so(ft|ny)|sp(01|h\-|v\-|v )|sy(01|mb)|t2(18|50)|t6(00|10|18)|ta(gt|lk)|tcl\-|tdg\-|tel(i|m)|tim\-|t\-mo|to(pl|sh)|ts(70|m\-|m3|m5)|tx\-9|up(\.b|g1|si)|utst|v400|v750|veri|vi(rg|te)|vk(40|5[0-3]|\-v)|vm40|voda|vulc|vx(52|53|60|61|70|80|81|83|85|98)|w3c(\-| )|webc|whit|wi(g |nc|nw)|wmlb|wonu|x700|yas\-|your|zeto|zte\-/i.test(a.substr(0, 4))) check = true })(navigator.userAgent || navigator.vendor || window.opera);
+    return check;
 };
 
 //-----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -141,7 +154,7 @@ DN.prototype.GroupBy = function (data, key) { // `data` is an array of objects, 
 // Groups and summarises the data to produce output of the form of {ID1 : Count1, ID2 : Count2}
 DN.prototype.GroupByAndSummarise = function (data, keyCol, summaryCol) {
 
-    if (IsDefined(data) && IsDefined(keyCol) && IsDefined(summaryCol)) {
+    if (this.IsDefined(data) && this.IsDefined(keyCol) && this.IsDefined(summaryCol)) {
 
         return data.reduce((groupedData, d) => {
             groupedData[d[keyCol]] = (groupedData[d[keyCol]] || 0) + d[summaryCol];
@@ -192,7 +205,7 @@ DN.prototype.BuildObj = function (id, title) {
 //-- Get the title from the list built with BuildObj given the ID
 DN.prototype.GetTitleFromObj = function (id, list) {
     let title = "";
-    if (IsDefined(list)) {
+    if (this.IsDefined(list)) {
         for (let i = 0; i < list.length; i++) { // faster than forEach
             let v = list[i];
 
@@ -223,7 +236,7 @@ DN.prototype.GetSortFunction = function (sortByValue) {
 
 //-----------------------------------------------------------------------------------------------------------------------------------------------------
 DN.prototype.NumberWithCommas = function (x) {
-    if (!IsDefined(x) || x === "" || x === 0 || isNaN(x)) {
+    if (!this.IsDefined(x) || x === "" || x === 0 || isNaN(x)) {
         return 0;
     } else {
         return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
@@ -234,6 +247,14 @@ DN.prototype.NumberWith2DP = function (x) {
     let xStr = "--";
     if (isNaN(x) === false) {
         xStr = x.toFixed(2);
+    }
+    return xStr;
+};
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+DN.prototype.NumberWithNDP = function (x, n) {
+    let xStr = "--";
+    if (isNaN(x) === false) {
+        xStr = x.toFixed(n);
     }
     return xStr;
 };
@@ -266,7 +287,7 @@ DN.prototype.GetValue = function (colToCount, d) {
 */
 DN.prototype.ExpandRange = function (summaryCounts, fullRange) {
 
-    if (IsDefined(summaryCounts) && IsDefined(fullRange)) {
+    if (this.IsDefined(summaryCounts) && this.IsDefined(fullRange)) {
 
         fullRange.forEach(function (v) {
 
@@ -306,7 +327,7 @@ DN.prototype.StrimColourRamp = function (colourRampList, numColours) {
     let newRamp = colourRampList;
 
     // lets strim if required ...
-    if (IsDefined(colourRampList) && IsDefined(numColours) && numColours > 0) {
+    if (this.IsDefined(colourRampList) && this.IsDefined(numColours) && numColours > 0) {
         newRamp = [];
 
         for (let i = 0; i < numColours; i++) {
@@ -332,7 +353,7 @@ DN.prototype.StrimColourRamp2 = function (colourRampList, indexesInDataList) {
     let newRamp = colourRampList;
 
     // lets strim if required ...
-    if (IsDefined(colourRampList) && IsDefined(indexesInDataList)) {
+    if (this.IsDefined(colourRampList) && this.IsDefined(indexesInDataList)) {
         newRamp = [];
 
         indexesInDataList.forEach(function (v) {
@@ -388,6 +409,23 @@ DN.prototype.GetYearMonthFullList = function (startYear, startMonth) {
     return yearMonths;
 };
 
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+/*
+    Gets the Year and Month in the form 201909 for September 2019
+*/
+DN.prototype.YearMonth = function () {
+    let d = new Date();
+
+    let ym = d.getFullYear().toString();
+    let m = d.getMonth() + 1;
+    if (m < 10) {
+        ym = ym + "0";
+    }
+    ym = ym + m.toString();
+
+    return ym;
+};
+
 //-----------------------------------------------------------------------------------------------------------------------------------------------------
 /*--
     Gets the description of the year and month lists given a list in the following format 201807, 201806.
@@ -395,7 +433,7 @@ DN.prototype.GetYearMonthFullList = function (startYear, startMonth) {
 DN.prototype.GetYearMonthDescriptionList = function (yearMonthList, useShortMonthDescription) {
     let descList = [];
 
-    if (IsDefined(yearMonthList)) {
+    if (this.IsDefined(yearMonthList)) {
         yearMonthList.forEach(function (v) {
 
             // Sep-19 - parse as a string to use substring (as the e.g. 201807 convention will be numeric)
@@ -421,7 +459,7 @@ DN.prototype.GetYearMonthDescriptionList = function (yearMonthList, useShortMont
 DN.prototype.GetYearDescriptionList = function (yearList) {
     let descList = [];
 
-    if (IsDefined(yearList)) {
+    if (this.IsDefined(yearList)) {
         yearList.forEach(function (v) {
             descList.push(dn.BuildObj(v, v));
         });
@@ -559,11 +597,12 @@ DN.prototype.PreFilterData = function (objListToFilter, data, isAndOperation) {
     if (isAndOperation === false) {
         let numObjs = 0;
 
-        objListToFilter.forEach(function (v) {
-            if (IsDefined(v.Objs) && v.Objs.length > 0) {
+        for (let i = 0; i < objListToFilter.length; i++) {
+            let v = objListToFilter[i];
+            if (this.IsDefined(v.Objs) && v.Objs.length > 0) {
                 numObjs++;
             }
-        });
+        }
 
         if (numObjs < 2) {
             isAndOperation = true;
@@ -585,14 +624,14 @@ DN.prototype.PreFilterData = function (objListToFilter, data, isAndOperation) {
 
             if (isAndOperation === true) {
                 // using the array.prototype.find to find a value in an array ...
-                foundDD = foundDD && (v1.Objs.length === 0 || IsDefined(dn.GetObjInList(v1.Objs, null, tempVal)));
+                foundDD = foundDD && (v1.Objs.length === 0 || this.IsDefined(dn.GetObjInList(v1.Objs, null, tempVal)));
             } else {
 
                 // OR operation...
                 if (foundDD === true) {
                     break;
                 } else {
-                    foundDD = (v1.Objs.length === 0 || IsDefined(dn.GetObjInList(v1.Objs, null, tempVal)));
+                    foundDD = (v1.Objs.length === 0 || this.IsDefined(dn.GetObjInList(v1.Objs, null, tempVal)));
                 }
 
             }
@@ -613,15 +652,35 @@ DN.prototype.PreFilterData = function (objListToFilter, data, isAndOperation) {
 */
 DN.prototype.GetObjInList = function (listOfObjs, paramName, paramValue) {
     let obj = null;
-    if (IsDefined(listOfObjs) && IsDefined(paramValue)) {
+    if (this.IsDefined(listOfObjs) && this.IsDefined(paramValue)) {
 
-        if (IsDefined(paramName)) {
+        if (this.IsDefined(paramName)) {
             obj = listOfObjs.find(x => x[paramName] === paramValue);
         } else {
             obj = listOfObjs.find(x => x === paramValue);
         }
     }
     return obj;
+};
+
+
+//-----------------------------------------------------------------------------------------------------------------------------------------------------
+/*
+ * Given a dataset, and a variable name, this method builds a lookup list with the format {ID:123,Title:variable value}
+*/
+DN.prototype.BuildLookupList = function (listOfObjs, paramName, startIndex) {
+    let lookupList = null;
+
+    if (this.IsDefined(listOfObjs) && this.IsDefined(paramName)) {
+
+        // Starting from the inside out - we reduce our dataset (a list of objects), down to a list of our specific parameter
+        // Then we get the unique list from this, then we add the index
+        lookupList = dn.Unique(listOfObjs.map(d => d[paramName])).map((x, i) => {
+            return { ID: i+startIndex, Title: x };
+        });
+        
+    }
+    return lookupList;
 };
 
 
@@ -645,7 +704,7 @@ DN.prototype.GetDataKeyFromIDString = function (dataIDStr, lookupList) {
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 DN.prototype.SetNullToZero = function (numVal) {
     // If not defined then set it to zero...
-    return (IsDefined(numVal)) ? numVal : 0;
+    return (this.IsDefined(numVal)) ? numVal : 0;
 };
 
 //-----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -653,17 +712,42 @@ DN.prototype.SetNullToZero = function (numVal) {
 DN.prototype.GetStyleDimension = function (obj, styleName) {
     let val = 0;
 
-    if (IsDefined(obj) && IsDefined(styleName)) {
+    if (this.IsDefined(obj) && this.IsDefined(styleName)) {
         val = +(obj.style(styleName).replace("px", ""));
     }
 
     return val;
 };
 
+//-----------------------------------------------------------------------------------------------------------------------------------------------------
+// Get the browser width and height
+DN.prototype.WidthAndHeight = function () {
+    //--00-- Get the width and height of the browser
+    // Removed the window.innerwidth and inner height as these are not the right dimensions for mobile devices.
+    let docWidth = document.documentElement.clientWidth || document.body.clientWidth;
+    let docHeight = document.documentElement.clientHeight || document.body.clientHeight;
+
+    // Alternative approach - compare the innerWidth with the above to get the scale and set the view port
+    /*
+        let clientWidth = document.documentElement.clientWidth;
+        let clientHeight = document.documentElement.clientHeight;
+        let scale = Math.round(clientWidth * 10 / docWidth) / 10;
+
+        let viewport = document.querySelector("meta[name=viewport]");
+        viewport.setAttribute("content", "width=device-width, initial-scale=" + scale + ", maximum-scale=1.0, user-scalable=0");
+        console.log(docWidth, docHeight, scale);
+    */
+
+    return { docWidth, docHeight };
+};
 
 
 
 
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 /*
     A group of chart objects - used to store the DNCharts and the common dataset and to organise the filtering of the data as the interactive visualisation is explored.
@@ -731,7 +815,7 @@ function DNChartGroup(originalJSData) {
     // Nov-19 - Make the dropshadows configurable on the bar, column and pie charts
     this.showDropShadow = true;
     //-- FF bug - Set the appropriate CSS class for the dropshadows ...
-    this.dropShadowCSS = (isFirefox || isMobile) ? "DropShadowCSS" : "DropShadowSVG";
+    this.dropShadowCSS = (isFirefox || dn.IsMobile) ? "DropShadowCSS" : "DropShadowSVG";
 
     // The URL editor functions
     this.urlEditor = null; // new DNURLEditor();
@@ -747,7 +831,7 @@ DNChartGroup.prototype.Charts = function () {
 DNChartGroup.prototype.AddChartToGroup = function (dnChart) {
     // Add this chart to the group of charts
     // Dec-19 - if this chart ID already exists, we want to replace it not add it...  This happens when resizing the dashboard with the new DrawResponsively method...
-    if (IsDefined(this.charts)) {
+    if (dn.IsDefined(this.charts)) {
         let chartExists = false;
 
         for (let i = 0; i < this.charts.length; i++) {
@@ -772,15 +856,15 @@ DNChartGroup.prototype.ObjectListToFilter = function (chartID, objectList) {
     let objList = null;
 
     // If the optional object list is not set, then use the build in list of filters
-    if (!IsDefined(objectList)) {
+    if (!dn.IsDefined(objectList)) {
         objectList = this.objsToFilter;
     }
 
     // loop through and extract the objects to filter
-    if (IsDefined(objectList)) {
+    if (dn.IsDefined(objectList)) {
         let v = dn.GetObjInList(objectList, "ID", chartID);
 
-        if (IsDefined(v)) {
+        if (dn.IsDefined(v)) {
             objList = v.Objs;
         }
     }
@@ -803,7 +887,7 @@ DNChartGroup.prototype.SetSingleOptionDimension = function (chartID, defaultValu
     // Dec-19 - with the responsive resizing of the charts - we need to check if the given chart ID exists already
     // Jan-20 XXX - lets try not doing this at all
     
-    if (IsDefined(this.GetFilterParameters(chartID))) {
+    if (dn.IsDefined(this.GetFilterParameters(chartID))) {
         for (let i = 0; i < this.objsToFilter.length; i++) {
             if (this.objsToFilter[i].ChartID === chartID) {
                 this.objsToFilter[i].Objs = [defaultValue];
@@ -827,9 +911,9 @@ DNChartGroup.prototype.SetSingleOptionDimension = function (chartID, defaultValu
 DNChartGroup.prototype.IsSingleOptionDimension = function (chartID, currentValue) {
     let isSOD = false;
 
-    if (IsDefined(chartID) && IsDefined(this.singleOptionDimension)) {
+    if (dn.IsDefined(chartID) && dn.IsDefined(this.singleOptionDimension)) {
         if (this.singleOptionDimension.ID === chartID) {
-            if (IsDefined(currentValue)) {
+            if (dn.IsDefined(currentValue)) {
                 if (this.singleOptionDimension.DefaultVal === currentValue) {
                     isSOD = true;
                 }
@@ -878,7 +962,7 @@ DNChartGroup.prototype.SetPivotDimensions = function (chartIDs) {
 DNChartGroup.prototype.IsPivotDimension = function (chartID) {
 
     // Check for this chart ID in the list of pivot dimension chart IDs
-    return IsDefined(this.pivotDimensions) && this.pivotDimensions.length > 0 && IsDefined(dn.GetObjInList( this.pivotDimensions, null, chartID));
+    return dn.IsDefined(this.pivotDimensions) && this.pivotDimensions.length > 0 && dn.IsDefined(dn.GetObjInList( this.pivotDimensions, null, chartID));
 
 };
 
@@ -889,7 +973,7 @@ DNChartGroup.prototype.ObjectsToFilterContainOtherDimensions = function () {
     for (let i = 0; i < this.objsToFilter.length; i++) {
         let obj = this.objsToFilter[i];
         // Only continue if the filter dimension contains some objects to filter on
-        if (IsDefined(obj.Objs) && obj.Objs.length > 0) {
+        if (dn.IsDefined(obj.Objs) && obj.Objs.length > 0) {
 
             if (obj.ID !== this.singleOptionDimension.ID && this.IsPivotDimension(obj.ID) === false) {
                 return true;
@@ -904,12 +988,12 @@ DNChartGroup.prototype.ObjectsToFilterContainOtherDimensions = function () {
 // Identifies if the filters contain dynamically generated data.
 DNChartGroup.prototype.ObjectsToFilterContainDynamicDimensions = function () {
 
-    if (IsDefined(this.dynamicallyGeneratedDataAttributeList) && this.dynamicallyGeneratedDataAttributeList.length > 0) {
+    if (dn.IsDefined(this.dynamicallyGeneratedDataAttributeList) && this.dynamicallyGeneratedDataAttributeList.length > 0) {
 
         for (let i = 0; i < this.objsToFilter.length; i++) {
             let obj = this.objsToFilter[i];
             // Only continue if the filter dimension contains some objects to filter on
-            if (IsDefined(obj.Objs) && obj.Objs.length > 0) {
+            if (dn.IsDefined(obj.Objs) && obj.Objs.length > 0) {
 
                 for (let j = 0; j < this.dynamicallyGeneratedDataAttributeList.length; j++) {
                     if (obj.ID === this.dynamicallyGeneratedDataAttributeList[j].TargetColumnID) {
@@ -931,9 +1015,9 @@ DNChartGroup.prototype.SetDropShadow = function (doShow) {
     this.showDropShadow = doShow;
 
     //-- FF bug - Set the appropriate CSS class for the dropshadows ...
-    this.dropShadowCSS = (isFirefox || isMobile) ? "DropShadowCSS" : "DropShadowSVG";
+    this.dropShadowCSS = (isFirefox || dn.IsMobile) ? "DropShadowCSS" : "DropShadowSVG";
 
-    if (IsDefined(doShow) && doShow === false) {
+    if (dn.IsDefined(doShow) && doShow === false) {
         this.dropShadowCSS = "DropShadowNone";
     }
 
@@ -964,10 +1048,10 @@ DNChartGroup.prototype.AddDynamicallyGeneratedDataVariable = function (sourceCol
 // but it can't logically follow that a target column could have more than source, as it would just be reset.
 DNChartGroup.prototype.SetDynamicallyGeneratedDataAttribute = function (targetColID, attrName, attrValue) {
 
-    if (IsDefined(this.dynamicallyGeneratedDataAttributeList)) {
+    if (dn.IsDefined(this.dynamicallyGeneratedDataAttributeList)) {
         let ddObj = dn.GetObjInList(this.dynamicallyGeneratedDataAttributeList, "TargetColumnID", targetColID);
         // If it exists, lets set it
-        if (IsDefined(ddObj)) {
+        if (dn.IsDefined(ddObj)) {
             ddObj[attrName] = attrValue;
         }
     }
@@ -990,10 +1074,10 @@ DNChartGroup.prototype.ClearSelected = function () {
 //-----------------------------------------------------------------------------------------------------------------------------------------------------
 DNChartGroup.prototype.ResetAll = function () {
     // Stop the bar chart slider playing if it is currently playing
-    if (IsDefined(this.columnChartSlider)) {
+    if (dn.IsDefined(this.columnChartSlider)) {
         this.columnChartSlider.StopPlaying();
         // Aug-19 - different default options for STOCK visualisations
-        if (IsDefined(this.singleOptionDimension)) {
+        if (dn.IsDefined(this.singleOptionDimension)) {
             this.columnChartSlider.Range(0, 1);
         } else {
             this.columnChartSlider.Range(this.columnChartSlider.defaultRange.begin, this.columnChartSlider.defaultRange.end);
@@ -1002,7 +1086,7 @@ DNChartGroup.prototype.ResetAll = function () {
     }
 
     // If there is a map then recentre and relocate it and set its standard zoom
-    if (IsDefined(this.meep)) {
+    if (dn.IsDefined(this.meep)) {
         this.ResetMap();
     }
 
@@ -1010,7 +1094,7 @@ DNChartGroup.prototype.ResetAll = function () {
     this.ClearSelected();
 
     // Apr-2019 - if the single option dimension is set, then lets use it ...
-    if (IsDefined(this.singleOptionDimension)) {
+    if (dn.IsDefined(this.singleOptionDimension)) {
 
         this.DoFilter(this.singleOptionDimension.ID + "_" + this.singleOptionDimension.DefaultVal, true);
     } else {
@@ -1033,7 +1117,7 @@ DNChartGroup.prototype.DoFilter = function (objID, doReset) {
 
     // This gets the particular graphic of interest ...
     // Aug-19 - changed this logic round so we pivot on whether the object id is there, rather than whether this is a reset.
-    if (IsDefined(objID) && objID !== "") {
+    if (dn.IsDefined(objID) && objID !== "") {
 
         //--1-- Get the chart ID and the object ID ...
         graphicID = objID.substring(0, 2);
@@ -1054,14 +1138,14 @@ DNChartGroup.prototype.DoFilter = function (objID, doReset) {
         let foundObj = false;
 
         // Set the current list to an empty array if it does not yet exist, or if this is a stock single option dimension visualisation.
-        if (!IsDefined(currentList)) {
+        if (!dn.IsDefined(currentList)) {
             currentList = [];
         } else {
-            foundObj = IsDefined(dn.GetObjInList( currentList, null, valID));
+            foundObj = dn.IsDefined(dn.GetObjInList( currentList, null, valID));
         }
 
         // if it existed, then remove it, otherwise add it; and a special case for single option dimensions, we toggle off the previously selected option and reset the value to be the selected element ID
-        if (IsDefined(cg.singleOptionDimension) && cg.singleOptionDimension.ID === graphicID) {
+        if (dn.IsDefined(cg.singleOptionDimension) && cg.singleOptionDimension.ID === graphicID) {
             this.ToggleSelected(graphicID, currentList[0]);
             currentList = [valID];
 
@@ -1103,7 +1187,7 @@ DNChartGroup.prototype.DoFilter = function (objID, doReset) {
 DNChartGroup.prototype.DoMultiFilter = function (chartID, objIDList) {
 
     //-----1----- Only continue if we have a chart ID and object ID list
-    if (IsDefined(chartID) && IsDefined(objIDList)) {
+    if (dn.IsDefined(chartID) && dn.IsDefined(objIDList)) {
 
         //-----2----- Iterate through the charts and objects selected and update the selected objects for this chart.
         this.UpdateObjectIDsToFilter(chartID, objIDList, true);
@@ -1136,7 +1220,7 @@ DNChartGroup.prototype.ApplyFilter = function (activeChartID, doReset, forceGhos
     SetSummary();
 
     //-----4----- Lastly, then lets update the URL with the list of current filters (Dec-19 - converted this into a separate class)
-    if (IsDefined(this.urlEditor) && (!IsDefined(ignoreURLUpdate) || ignoreURLUpdate === false)) {
+    if (dn.IsDefined(this.urlEditor) && (!dn.IsDefined(ignoreURLUpdate) || ignoreURLUpdate === false)) {
         this.urlEditor.URLUpdate(this.objsToFilter, this.charts);
     }
 
@@ -1167,7 +1251,7 @@ DNChartGroup.prototype.CloneObjectIDsToFilter = function (theList) {
         let id = theList[i].ID;
         let objList = [];
 
-        if (IsDefined(theList[i].Objs)) {
+        if (dn.IsDefined(theList[i].Objs)) {
             for (let j = 0; j < theList[i].Objs.length; j++) {
                 objList.push(theList[i].Objs[j]);
             }
@@ -1203,7 +1287,7 @@ DNChartGroup.prototype.AddDynamicVariablesInObjectIDsToFilter = function (objLis
         v.DDID = null;
         v.IsDD = false;
 
-        if (IsDefined(dynamicDimensionObj)) {
+        if (dn.IsDefined(dynamicDimensionObj)) {
             // Update it with the source column ID....
             v.DDID = dynamicDimensionObj.SourceColumnID;
             v.IsDD = true;
@@ -1220,21 +1304,21 @@ DNChartGroup.prototype.AddDynamicVariablesInObjectIDsToFilter = function (objLis
 DNChartGroup.prototype.UpdateObjectIDsToFilter = function(chartID, objIDList, doToggleSelected) {
 
     //-----0------
-    doToggleSelected = (! IsDefined(doToggleSelected)) ? false : doToggleSelected;
+    doToggleSelected = (! dn.IsDefined(doToggleSelected)) ? false : doToggleSelected;
 
     //-----1----- Only continue if we have a chart ID and object ID list
-    if (IsDefined(chartID) && IsDefined(objIDList)) {
+    if (dn.IsDefined(chartID) && dn.IsDefined(objIDList)) {
 
         //-----2----- Iterate through the charts and objects selected and update the selected objects for this chart.
         let foundGraphic = false;
         let v = dn.GetObjInList(this.objsToFilter, "ID", chartID);
 
-        if (IsDefined(v)) {
+        if (dn.IsDefined(v)) {
 
             foundGraphic = true;
 
             ///////////////////////////////////////////////////// WHERE TO PUT THIS IN THIS CONTEXT????  This ensures that the single option dimension remains singular.
-            if (IsDefined(this.singleOptionDimension) && this.singleOptionDimension.ID === v.ID) {
+            if (dn.IsDefined(this.singleOptionDimension) && this.singleOptionDimension.ID === v.ID) {
                 // Do nothing for now
             }
 
@@ -1242,7 +1326,7 @@ DNChartGroup.prototype.UpdateObjectIDsToFilter = function(chartID, objIDList, do
             for (let j = 0; j < v.Objs.length; j++) {
                 let objID = v.Objs[j];
 
-                let foundObj = IsDefined(dn.GetObjInList(objIDList, null, objID));
+                let foundObj = dn.IsDefined(dn.GetObjInList(objIDList, null, objID));
                 if (foundObj === false) {
                     v.Objs.splice(j, 1);
 
@@ -1257,7 +1341,7 @@ DNChartGroup.prototype.UpdateObjectIDsToFilter = function(chartID, objIDList, do
             for (let j = 0; j < objIDList.length; j++) {
                 let objID = objIDList[j];
 
-                let foundObj = IsDefined(dn.GetObjInList(v.Objs, null, objID));
+                let foundObj = dn.IsDefined(dn.GetObjInList(v.Objs, null, objID));
                 if (foundObj === false) {
                     v.Objs.push(objID);
 
@@ -1297,7 +1381,7 @@ DNChartGroup.prototype.UpdateObjectIDsToFilter = function(chartID, objIDList, do
 DNChartGroup.prototype.DynamicallyGenerateData = function () {
 
         //--1-- if we have any dynamically generated data attributes, lets loop through them and apply them
-    if (IsDefined(this.dynamicallyGeneratedDataAttributeList) && this.dynamicallyGeneratedDataAttributeList.length > 0) {
+    if (dn.IsDefined(this.dynamicallyGeneratedDataAttributeList) && this.dynamicallyGeneratedDataAttributeList.length > 0) {
         for (let i = 0; i < this.dynamicallyGeneratedDataAttributeList.length; i++) {
 
             //--2-- Pull out the data attribute info
@@ -1315,7 +1399,7 @@ DNChartGroup.prototype.DynamicallyGenerateData = function () {
                 let val = dataAtt.OtherID;
                 // Try to find one of the summary values
                 let obj = dn.GetObjInList(summaryData, "ID", sourceObj[dataAtt.SourceColumnID]);
-                if (IsDefined(obj) && IsDefined(obj.ID)) {
+                if (dn.IsDefined(obj) && dn.IsDefined(obj.ID)) {
                     val = obj.ID;
                 }
 
@@ -1330,7 +1414,7 @@ DNChartGroup.prototype.DynamicallyGenerateData = function () {
                 let val = dataAtt.OtherID;
                 // Try to find one of the summary values
                 let obj = dn.GetObjInList(summaryData, "ID", sourceObj[dataAtt.SourceColumnID]);
-                if (IsDefined(obj) && IsDefined(obj.ID)) {
+                if (dn.IsDefined(obj) && dn.IsDefined(obj.ID)) {
                     val = obj.ID;
                 }
                 this.origJSData[j][dataAtt.TargetColumnID] = val;
@@ -1347,20 +1431,20 @@ DNChartGroup.prototype.DynamicallyGenerateData = function () {
 DNChartGroup.prototype.ToggleSelected = function (chartID, objID, forceToDisplay) {
 
     // if this is a map, do nothing as there are no pink toggley bits to update.
-    let isMap = IsDefined( this.charts.find(x => (x.ChartID === chartID && x.ChartType === 500)));
+    let isMap = dn.IsDefined( this.charts.find(x => (x.ChartID === chartID && x.ChartType === 500)));
 
     if (isMap === false) {
         let chartEle = d3.select("#" + chartID + "_" + objID + "_3");
 
         // Only try to set it if the chart element is not null and not empty.
-        if (IsDefined(chartEle) && chartEle.empty() === false) {
+        if (dn.IsDefined(chartEle) && chartEle.empty() === false) {
             // July-2018 - and show / hide the bright pink toggle option
             let currentStyle = chartEle.style("display");
             // Note that d3 will change the empty style to be inline ......
             currentStyle = (currentStyle === "none") ? "" : "none";
 
             // Force the current element to display ...
-            if (IsDefined(forceToDisplay) && forceToDisplay === true) {
+            if (dn.IsDefined(forceToDisplay) && forceToDisplay === true) {
                 currentStyle = "";
             }
 
@@ -1422,11 +1506,11 @@ DNChartGroup.prototype.GetFilteredDataBase = function (objListToFilter, dataVari
             let v1 = objListToFilter[i];
 
             //--01-- See whether or not we need to include this data variable in the filtering.
-            let doFilterDataVariable = !IsDefined(dataVariablesToIgnore) || !IsDefined(dn.GetObjInList(dataVariablesToIgnore, null, v1.ID));
+            let doFilterDataVariable = !dn.IsDefined(dataVariablesToIgnore) || !dn.IsDefined(dn.GetObjInList(dataVariablesToIgnore, null, v1.ID));
 
             if (doFilterDataVariable) {
                 //--02-- March 2019 - check if this is a multi variate column chart.  If so, we actually want the valID to become the "graphic ID"
-                let isMultiVariate = IsDefined(charts.find(x => (x.ChartID === v1.ID && x.ChartType === 700)));
+                let isMultiVariate = dn.IsDefined(charts.find(x => (x.ChartID === v1.ID && x.ChartType === 700)));
 
                 if (isMultiVariate === true) {
                     //--03-- If this is multivariate, we select based on all the selected object IDs are set to 1
@@ -1437,11 +1521,11 @@ DNChartGroup.prototype.GetFilteredDataBase = function (objListToFilter, dataVari
 
                 } else {
                     //--04-- Otherwise, we can get the value and then just use the array.prototype.find syntax.
-                    let tempFound = (v1.Objs.length === 0 || IsDefined(dn.GetObjInList(v1.Objs, null, dn.GetValue(v1.ID, v))));
+                    let tempFound = (v1.Objs.length === 0 || dn.IsDefined(dn.GetObjInList(v1.Objs, null, dn.GetValue(v1.ID, v))));
 
                     // Jan-20 - if this is dynamic data, lets check here on the source data too (it's like an extended OR)
                     if (v1.IsDD && tempFound === false) {
-                        tempFound = IsDefined(dn.GetObjInList(v1.Objs, null, dn.GetValue(v1.DDID, v)));
+                        tempFound = dn.IsDefined(dn.GetObjInList(v1.Objs, null, dn.GetValue(v1.DDID, v)));
                     }
 
                     foundDD = foundDD && tempFound;
@@ -1479,7 +1563,7 @@ DNChartGroup.prototype.GetInfo2DFlex = function (colToCount1, colToCount2, dataC
     let otherValues = this.otherValues;
 
     //--1-- Do the filter using either one or two dimensions...
-    if (! IsDefined(colToCount2) || colToCount2 === "") {
+    if (! dn.IsDefined(colToCount2) || colToCount2 === "") {
         // d3.nest will produce something like {"3001": {"2001" : 13000}} using .object, but .entries is more useful for us and produces this nested summary:
         // [{"key":"3006","values":[{"key":"2011","value":0},{"key":"2005","value":943} ...
         // Nest always creates IDs that are string values: https://stackoverflow.com/questions/41579465/d3-nest-turns-key-into-string-value - they are coerced into strings
@@ -1488,7 +1572,7 @@ DNChartGroup.prototype.GetInfo2DFlex = function (colToCount1, colToCount2, dataC
             .rollup(function (v) {
                 return d3.sum(v,
                     function (d) {
-                        if (IsDefined(colToSum) && colToSum !== "") {
+                        if (dn.IsDefined(colToSum) && colToSum !== "") {
                             return d[colToSum];
                         } else {
                             return d.Count;
@@ -1509,7 +1593,7 @@ DNChartGroup.prototype.GetInfo2DFlex = function (colToCount1, colToCount2, dataC
             }
 
             // Creates { "ID1":211,"ID2":302,"Count":23232 }, where ID1 is the source and ID2 is the target
-            if (IsDefined(otherValues) && otherValues.length > 0 && IsDefined(dn.GetObjInList( otherValues, null, v.key))) {
+            if (dn.IsDefined(otherValues) && otherValues.length > 0 && dn.IsDefined(dn.GetObjInList( otherValues, null, v.key))) {
                 summaryArrayOther.push({
                     ID: v.key,
                     Count: v.value
@@ -1530,7 +1614,7 @@ DNChartGroup.prototype.GetInfo2DFlex = function (colToCount1, colToCount2, dataC
             .key(function (d) { return dn.GetValue(colToCount2, d); })
             .rollup(function (v) {
                 return d3.sum(v, function (d) {
-                    if (IsDefined(colToSum) && colToSum !== "") {
+                    if (dn.IsDefined(colToSum) && colToSum !== "") {
                         return d[colToSum];
                     } else {
                         return d.Count;
@@ -1559,8 +1643,8 @@ DNChartGroup.prototype.GetInfo2DFlex = function (colToCount1, colToCount2, dataC
                 }
 
                 // Creates { "ID1":211,"ID2":302,"Count":23232 }, where ID1 is the source and ID2 is the target
-                if (IsDefined(otherValues) && otherValues.length > 0 &&
-                    (IsDefined(dn.GetObjInList(otherValues, null, v1.key)) || IsDefined(dn.GetObjInList(otherValues, null, v2.key)))) {
+                if (dn.IsDefined(otherValues) && otherValues.length > 0 &&
+                    (dn.IsDefined(dn.GetObjInList(otherValues, null, v1.key)) || dn.IsDefined(dn.GetObjInList(otherValues, null, v2.key)))) {
 
                     summaryArrayOther.push({
                         ID1: v1.key,
@@ -1585,7 +1669,7 @@ DNChartGroup.prototype.GetInfo2DFlex = function (colToCount1, colToCount2, dataC
     summaryArray.push.apply(summaryArray, summaryArrayOther);
 
     //--4-- Slice the data to just include the first few values, if required ...
-    if (IsDefined(maxNumValues) && maxNumValues > 0 && summaryArray.length > maxNumValues) {
+    if (dn.IsDefined(maxNumValues) && maxNumValues > 0 && summaryArray.length > maxNumValues) {
         summaryArray = summaryArray.slice(0, maxNumValues);
     }
 
@@ -1609,7 +1693,7 @@ DNChartGroup.prototype.GetInfo2D = function (colToCount1, colToCount2) {
 
     // Get the sorting, max number of values and column to sum from the global list of charts
     let c = dn.GetObjInList(cg.charts, "ChartID", colToCount1);
-    if (IsDefined(c)) {
+    if (dn.IsDefined(c)) {
         sortByValue = c.SortByValue;
         maxNumValues = c.MaxNumValues;
         colToSum = c.ColToSum;
@@ -1630,7 +1714,7 @@ DNChartGroup.prototype.GetInfoIDNumericKey = function (colToCount1) {
     // The this key word changes context inside a forEach loop, therefore we need to set this reference to the DNChartGroup here
     let cg = this;
     let data = cg.GetInfo2D(colToCount1, null);
-    if (IsDefined(data) && data.length > 0) {
+    if (dn.IsDefined(data) && data.length > 0) {
         for (let i = 0; i < data.length; i++) {
             let num = +data[i].ID;
             data[i].ID = num;
@@ -1655,7 +1739,7 @@ DNChartGroup.prototype.GetInfoND = function (namesList) {
     let dataCube = cg.filteredJSData;
 
     //--1-- Do the filter using either one or two dimensions...
-    if (IsDefined(namesList)) {
+    if (dn.IsDefined(namesList)) {
 
         for (let i = 0; i < namesList.length; i++) {
 
@@ -1681,10 +1765,10 @@ DNChartGroup.prototype.GetInfoND = function (namesList) {
 
 //-----------------------------------------------------------------------------------------------------------------------------------------------------
 /*
-    SankeyifyData - Creates a JSON like structure with an object with a list of links and a list of nodes, which is consumed by the DrawSankey code
+    SankifyData - Creates a JSON like structure with an object with a list of links and a list of nodes, which is consumed by the DrawSankey code
     The values for the elements in this chart MUST BE NUMERIC currently
 */
-DNChartGroup.prototype.SankeyifyData = function (chartID, useFilteredData) {
+DNChartGroup.prototype.SankifyData = function (chartID, useFilteredData) {
 
     // This is the output and it will store the links and nodes.
     let obj = {};
@@ -1695,8 +1779,8 @@ DNChartGroup.prototype.SankeyifyData = function (chartID, useFilteredData) {
     // Lets get the chart and assign the parameters
     let c = dn.GetObjInList(this.charts, "ChartID", chartID);
     // If the chart is not defined lets exit from here very quickly
-    if (!IsDefined(c)) {
-        console.error("dn.js - SankeyifyData - Fatal error building the Sankey JSON.  Could not find the chart definition for ID ", chartID);
+    if (!dn.IsDefined(c)) {
+        console.error("dn.js - SankifyData - Fatal error building the Sankey JSON.  Could not find the chart definition for ID ", chartID);
         return obj;
     }
     // So lets define locally what we need
@@ -1738,14 +1822,14 @@ DNChartGroup.prototype.SankeyifyData = function (chartID, useFilteredData) {
     if (isFiltering) {
         //-CHECK 1- See if we are dealing with dynamic data
         ddObjSource = dn.GetObjInList(this.dynamicallyGeneratedDataAttributeList, "TargetColumnID", sourceChartID);
-        if (IsDefined(ddObjSource)) {
+        if (dn.IsDefined(ddObjSource)) {
             dataVariablesToIgnoreWhenFiltering.push(ddObjSource.SourceColumnID);
-            otherSourceIsSelected = IsDefined(dn.GetObjInList(sourceVals, null, ddObjSource.OtherID));
+            otherSourceIsSelected = dn.IsDefined(dn.GetObjInList(sourceVals, null, ddObjSource.OtherID));
         }
         ddObjTarget = dn.GetObjInList(this.dynamicallyGeneratedDataAttributeList, "TargetColumnID", targetChartID);
-        if (IsDefined(ddObjTarget)) {
+        if (dn.IsDefined(ddObjTarget)) {
             dataVariablesToIgnoreWhenFiltering.push(ddObjTarget.SourceColumnID);
-            otherTargetIsSelected = IsDefined(dn.GetObjInList(targetVals, null, ddObjTarget.OtherID));
+            otherTargetIsSelected = dn.IsDefined(dn.GetObjInList(targetVals, null, ddObjTarget.OtherID));
         }
     }
 
@@ -1767,8 +1851,8 @@ DNChartGroup.prototype.SankeyifyData = function (chartID, useFilteredData) {
     summaryData = summaryData.map(v => {
         let toBeHighlighted = 0;
         if (isFiltering) {
-            toBeHighlighted = (sourceVals.length === 0 || IsDefined(dn.GetObjInList(sourceVals, null, v.ID1)))
-                && (targetVals.length === 0 || IsDefined(dn.GetObjInList(targetVals, null, v.ID2)))
+            toBeHighlighted = (sourceVals.length === 0 || dn.IsDefined(dn.GetObjInList(sourceVals, null, v.ID1)))
+                && (targetVals.length === 0 || dn.IsDefined(dn.GetObjInList(targetVals, null, v.ID2)))
                 ? 2 : 1;
         }
         v.IsFiltered = toBeHighlighted;
@@ -1815,7 +1899,7 @@ DNChartGroup.prototype.SankeyifyData = function (chartID, useFilteredData) {
         let keyNum = +v.ID;
         // Aug-19 - Ignore zero values
         if (v.Count > 0) {
-            let filteredCount = (IsDefined(filteredSData[keyNum])) ? filteredSData[keyNum] : 0;
+            let filteredCount = (dn.IsDefined(filteredSData[keyNum])) ? filteredSData[keyNum] : 0;
             // Note - the count is reintroduced by the sankey magic, so we dont need to include the default count
             obj.nodes.push({
                 ID: keyNum,
@@ -1833,7 +1917,7 @@ DNChartGroup.prototype.SankeyifyData = function (chartID, useFilteredData) {
         let keyNum = +v.ID;
         // Aug-19 - Ignore zero values
         if (v.Count > 0) {
-            let filteredCount = (IsDefined(filteredTData[keyNum])) ? filteredTData[keyNum] : 0;
+            let filteredCount = (dn.IsDefined(filteredTData[keyNum])) ? filteredTData[keyNum] : 0;
             // Note - the count is reintroduced by the sankey magic, so we dont need to include the default count
             obj.nodes.push({
                 ID: keyNum,
@@ -1854,20 +1938,20 @@ DNChartGroup.prototype.SankeyifyData = function (chartID, useFilteredData) {
 DNChartGroup.prototype.AppendDynamicDataToSankeyLinks = function (sourceChartID, targetChartID, filteredVals, summaryData, ddObj, otherElementIsSelected, idColName, sortByValue) {
 
     //-----05a----- Dynamic data special case!  Then if (1) there is dynamic data and (2) the source other ID is not selected, lets get a filter relating to that and see if there are missing values ...
-    if (IsDefined(ddObj) && !otherElementIsSelected) {
+    if (dn.IsDefined(ddObj) && !otherElementIsSelected) {
         // See of there are any missing values by getting a unique list of the source (and target) chart IDs, and then difference this with the list of the source vals from the objsToFilter list...
         // More specifically, lets reduce the filtered data to a unique list of source IDs by first mapping it to extract the specific column, and then filtering to remove duplicates
         let uniqueIDs = dn.Unique(summaryData.map(x => x[idColName]));
         let missingVals = filteredVals.filter(x => !uniqueIDs.includes(x));
 
         // If we have missing values, we want to filter the whole dataset, summarise the data again and then append these to the summary data
-        if (IsDefined(missingVals) && missingVals.length > 0) {
+        if (dn.IsDefined(missingVals) && missingVals.length > 0) {
 
-            let additionalSankeyData = this.filteredJSData.filter(d => IsDefined(dn.GetObjInList(missingVals, null, d[ddObj.SourceColumnID])));
+            let additionalSankeyData = this.filteredJSData.filter(d => dn.IsDefined(dn.GetObjInList(missingVals, null, d[ddObj.SourceColumnID])));
             let additionalSummaryData = this.GetInfo2DFlex(sourceChartID, targetChartID, additionalSankeyData, sortByValue, 0, "");
 
             // And append these to the summary data, ensuring use a map to add the IsFiltered attribute (all of these will be highlighted).
-            if (IsDefined(additionalSummaryData) && additionalSummaryData.length > 0) {
+            if (dn.IsDefined(additionalSummaryData) && additionalSummaryData.length > 0) {
                 additionalSummaryData = additionalSummaryData.map(v => { v.IsFiltered = 2; return v; });
                 summaryData = summaryData.concat(additionalSummaryData);
             }
@@ -1891,11 +1975,11 @@ DNChartGroup.prototype.RedrawAllCharts = function (activeChartID, doReset, force
 
     //--01-- Only use this method if this is a stock visualisation - which is specified by having the single option dimension set.
     // Jan-2020 - OR if this is a pivot dimension
-    if (IsDefined(cg.charts) && (IsDefined(cg.singleOptionDimension) || IsDefined(cg.pivotDimensions))) {
+    if (dn.IsDefined(cg.charts) && (dn.IsDefined(cg.singleOptionDimension) || dn.IsDefined(cg.pivotDimensions))) {
 
         // Jan-2020 - in the case of ResetAll but no single option dimension (but if we are here then we have a pivot dimension), we set the active chart ID to be the first pivot dimension in the list
         // This will cause the logic below to trigger a redraw
-        if (IsDefined(doReset) && doReset === true && (!IsDefined(activeChartID) || activeChartID === "")) {
+        if (dn.IsDefined(doReset) && doReset === true && (!dn.IsDefined(activeChartID) || activeChartID === "")) {
             activeChartID = cg.pivotDimensions[0];
         }
 
@@ -1934,7 +2018,7 @@ DNChartGroup.prototype.RedrawAllCharts = function (activeChartID, doReset, force
 
 
         //--04-- Case 2 - The single option has changed and there are one or more pivot dimensions.  In this case we need to build the generic dataset with all the data for this year...
-        if (activeChartIsSOD && IsDefined(cg.pivotDimensions) && cg.pivotDimensions.length > 0) {
+        if (activeChartIsSOD && dn.IsDefined(cg.pivotDimensions) && cg.pivotDimensions.length > 0) {
 
             //--04a-- Refilter by initially resetting the objects to filter
             cg.objsToFilter = [];
@@ -1973,7 +2057,7 @@ DNChartGroup.prototype.RedrawAllCharts = function (activeChartID, doReset, force
                     // we need to count the specific values selected
                     let objCount = 0;
                     tempFilters.forEach(function (v) {
-                        if (IsDefined(v.Objs)) {
+                        if (dn.IsDefined(v.Objs)) {
                             objCount += v.Objs.length;
                         }
                     });
@@ -2016,7 +2100,7 @@ DNChartGroup.prototype.RedrawAllCharts = function (activeChartID, doReset, force
                     // 18-Nov-19 - As long as it is not a map...
                     if (c.ChartType !== 500) {     // MAP
                         let element = document.getElementById(c.ChartID + "Div");
-                        if (IsDefined(element)) {
+                        if (dn.IsDefined(element)) {
                             element.parentNode.removeChild(element);
                         }
                     }
@@ -2029,7 +2113,7 @@ DNChartGroup.prototype.RedrawAllCharts = function (activeChartID, doReset, force
                     } else if (c.ChartType === 300) {     // LINE
                         c.DrawLineChart(chartGroup.GetInfo1D(c.ChartID));
                     } else if (c.ChartType === 400) {     // SANKEY
-                        c.DrawSankey(chartGroup.SankeyifyData(c.ChartID, false));
+                        c.DrawSankey(chartGroup.SankifyData(c.ChartID, false));
                     } else if (c.ChartType === 500) {     // MAP
                         c.DrawMap(chartGroup.GetInfoIDNumericKey(c.ChartID), chartGroup.GetInfoIDNumericKey(c.ChartIDSubGeographic));
                     } else if (c.ChartType === 600) {     // COLUMN
@@ -2046,8 +2130,8 @@ DNChartGroup.prototype.RedrawAllCharts = function (activeChartID, doReset, force
         //--09-- Generate the ghosting for the single option dimension in the case where this is a stock visualisation (specified by that it is a single option dimension) and the change to the selection is from another chart dimension - i.e. not the stock option.
         // Updated with the option to force the ghosting if needed.
         // Jan-20 - Reinforced the logic that the single option has to be defined to continue with the ghosting
-        if (IsDefined(cg.singleOptionDimension) &&
-            ((IsDefined(forceGhosting) && forceGhosting === true) || ! activeChartIsSOD)) {
+        if (dn.IsDefined(cg.singleOptionDimension) &&
+            ((dn.IsDefined(forceGhosting) && forceGhosting === true) || ! activeChartIsSOD)) {
 
             //  Do the filtering here of all attributes APART from the single option dimension...
             //--09a-- reset the objects to filter
@@ -2076,7 +2160,7 @@ DNChartGroup.prototype.RedrawAllCharts = function (activeChartID, doReset, force
                         // we need to count the specific values selected
                         let objCount = 0;
                         cg.objsToFilter.forEach(function (v) {
-                            if (IsDefined(v.Objs)) {
+                            if (dn.IsDefined(v.Objs)) {
                                 objCount += v.Objs.length;
                             }
                         });
@@ -2115,7 +2199,7 @@ DNChartGroup.prototype.RedrawAllCharts = function (activeChartID, doReset, force
 
         //--11-- Toggle the selected options on all the options that are currently set, if this is a stock visualisation or it contains pivot dimensions and it is not a reset
         if (activeChartIsSOD || activeChartIsPivotDimension) {
-            if (IsDefined(doReset) === false || doReset === false) {
+            if (dn.IsDefined(doReset) === false || doReset === false) {
                 for (let i = 0; i < tempFilters.length; i++) {
                     for (let j = 0; j < tempFilters[i].Objs.length; j++) {
                         cg.ToggleSelected(tempFilters[i].ID, tempFilters[i].Objs[j], true);
@@ -2135,7 +2219,7 @@ DNChartGroup.prototype.UpdateAllCharts = function () {
     // TO DO - this would be the place where the summary data would need to be pulled out from the call backs ... AJAX ME!!!
 
     // iterate through the charts and update them ...
-    if (IsDefined(cg.charts)) {
+    if (dn.IsDefined(cg.charts)) {
         cg.charts.forEach(function (c) {
             let fData = null;
 
@@ -2157,7 +2241,7 @@ DNChartGroup.prototype.UpdateAllCharts = function () {
 
             } else if (c.ChartType === 400) {        // SANKEY
                 // Rebuild also the sankey data ...  Note that this HAS to be update last as the filtering of the objsToFilter needs to have been already conducted ...
-                fData = cg.SankeyifyData(c.ChartID, true);
+                fData = cg.SankifyData(c.ChartID, true);
                 c.UpdateSankey(fData);
 
             } else if (c.ChartType === 500) {        // MAP
@@ -2185,13 +2269,13 @@ DNChartGroup.prototype.UpdateAllCharts = function () {
 DNChartGroup.prototype.TotalCount = function (summaryData, fieldToSum) {
 
     // The default field to sum..
-    if (! IsDefined(fieldToSum)) {
+    if (! dn.IsDefined(fieldToSum)) {
         fieldToSum = "Count";
     }
 
     // Use reduce to get the total from the dataset
     let total = 0;
-    if (IsDefined(summaryData)) {
+    if (dn.IsDefined(summaryData)) {
         total = summaryData.reduce((total, x) => {
             return total + x[fieldToSum];
         }, 0); // []);
@@ -2203,7 +2287,7 @@ DNChartGroup.prototype.TotalCount = function (summaryData, fieldToSum) {
 //---------------------------------------------------------------------------------------------------------------------
 DNChartGroup.prototype.ResetMap = function () {
 //    let cg =
-    if (IsDefined(this.meep)) {
+    if (dn.IsDefined(this.meep)) {
         this.meep.setView(dn.defaultMapCentroid, dn.defaultMapZoomLevel);
     }
 };
@@ -2305,18 +2389,18 @@ function DNChart() {
 // Constructor 0 - for Generic charts ...
 DNChart.prototype.GenericChart = function (chartID, chartType, divID, chartGroup, offsetX, offsetY, chartWidth, chartHeight, namesList, chartTitle, doDraw) {
 
-    //this.Options["ChartID"] = IsDefined(chartID) ? chartID : this.Options["ChartID"];
-    //this.Options["ChartType"] = IsDefined(chartType) ? chartType : this.Options["ChartType"];
-    //this.Options["ChartGroup"] = IsDefined(chartGroup) ? chartGroup : this.Options["ChartGroup"];
+    //this.Options["ChartID"] = dn.IsDefined(chartID) ? chartID : this.Options["ChartID"];
+    //this.Options["ChartType"] = dn.IsDefined(chartType) ? chartType : this.Options["ChartType"];
+    //this.Options["ChartGroup"] = dn.IsDefined(chartGroup) ? chartGroup : this.Options["ChartGroup"];
 
-    //this.Options["DivID"] = IsDefined(divID) ? divID : this.Options["DivID"];
-    //this.Options["OffsetX"] = IsDefined(offsetX) ? offsetX : this.Options["OffsetX"];
-    //this.Options["OffsetY"] = IsDefined(offsetY) ? offsetY : this.Options["OffsetY"];
-    //this.Options["MaxWidth"] = IsDefined(chartWidth) ? chartWidth : this.Options["MaxWidth"];
-    //this.Options["MaxHeight"] = IsDefined(chartHeight) ? chartHeight : this.Options["MaxHeight"];
-    //this.Options["Names1"] = IsDefined(namesList) ? namesList : this.Options["Names1"];
-    //this.Options["ChartTitle"] = IsDefined(chartTitle) ? chartTitle : this.Options["ChartTitle"];
-    //this.Options["DoDraw"] = IsDefined(doDraw) ? doDraw : this.Options["DoDraw"];
+    //this.Options["DivID"] = dn.IsDefined(divID) ? divID : this.Options["DivID"];
+    //this.Options["OffsetX"] = dn.IsDefined(offsetX) ? offsetX : this.Options["OffsetX"];
+    //this.Options["OffsetY"] = dn.IsDefined(offsetY) ? offsetY : this.Options["OffsetY"];
+    //this.Options["MaxWidth"] = dn.IsDefined(chartWidth) ? chartWidth : this.Options["MaxWidth"];
+    //this.Options["MaxHeight"] = dn.IsDefined(chartHeight) ? chartHeight : this.Options["MaxHeight"];
+    //this.Options["Names1"] = dn.IsDefined(namesList) ? namesList : this.Options["Names1"];
+    //this.Options["ChartTitle"] = dn.IsDefined(chartTitle) ? chartTitle : this.Options["ChartTitle"];
+    //this.Options["DoDraw"] = dn.IsDefined(doDraw) ? doDraw : this.Options["DoDraw"];
 
     this.ChartID = chartID;
     this.ChartType = chartType;
@@ -2346,7 +2430,7 @@ DNChart.prototype.GenericChart = function (chartID, chartType, divID, chartGroup
         } else if (this.ChartType === 300) {     // LINE
             this.DrawLineChart(chartGroup.GetInfo1D(this.ChartID));
         } else if (this.ChartType === 400) {     // SANKEY
-            this.DrawSankey(chartGroup.SankeyifyData(this.ChartID, false));
+            this.DrawSankey(chartGroup.SankifyData(this.ChartID, false));
         } else if (this.ChartType === 500) {     // MAP
             this.DrawMap(chartGroup.GetInfoIDNumericKey(this.ChartID), chartGroup.GetInfoIDNumericKey(this.ChartIDSubGeographic));
         } else if (this.ChartType === 600) {     // COLUMN
@@ -2366,11 +2450,11 @@ DNChart.prototype.GenericChart = function (chartID, chartType, divID, chartGroup
 DNChart.prototype.BarChart = function (chartID, divID, chartGroup, offsetX, offsetY, chartWidth, chartHeight, legendOffset, cssClass,
     sortByValue, maxNumValues, colToSum, namesList, chartTitle, doDraw) {
 
-    //this.Options["LegendOffset"] = IsDefined(legendOffset) ? legendOffset : this.Options["LegendOffset"];
-    //this.Options["CssClass"] = IsDefined(cssClass) ? cssClass : this.Options["CssClass"];
-    //this.Options["SortByValue"] = IsDefined(sortByValue) ? sortByValue : this.Options["SortByValue"];
-    //this.Options["MaxNumValues"] = IsDefined(maxNumValues) ? maxNumValues : this.Options["MaxNumValues"];
-    //this.Options["ColToSum"] = IsDefined(colToSum) ? colToSum : this.Options["ColToSum"];
+    //this.Options["LegendOffset"] = dn.IsDefined(legendOffset) ? legendOffset : this.Options["LegendOffset"];
+    //this.Options["CssClass"] = dn.IsDefined(cssClass) ? cssClass : this.Options["CssClass"];
+    //this.Options["SortByValue"] = dn.IsDefined(sortByValue) ? sortByValue : this.Options["SortByValue"];
+    //this.Options["MaxNumValues"] = dn.IsDefined(maxNumValues) ? maxNumValues : this.Options["MaxNumValues"];
+    //this.Options["ColToSum"] = dn.IsDefined(colToSum) ? colToSum : this.Options["ColToSum"];
     //this.Options["LegendMaxCharLength"] = this.Options["LegendMaxCharLength"] === 0 ? 25 : this.Options["LegendMaxCharLength"];
 
     // Unique to bar charts
@@ -2469,7 +2553,7 @@ DNChart.prototype.ColumnChart = function (chartID, divID, chartGroup, offsetX, o
     chartTitle, showSlider, doDraw) {
 
     // Jan-2020 - Check that D3RangeSlider is installed and flag an error if not
-    if (IsDefined( showSlider) && showSlider === true && typeof CreateD3RangeSlider !== "function") {
+    if (dn.IsDefined( showSlider) && showSlider === true && typeof CreateD3RangeSlider !== "function") {
         console.error("d3RangeSlider.js is not available!  This is required to support the slider functionality in bar charts DN.js.\nDownload it from XXX Add Github and/or reference the library in your project.");
     }
 
@@ -2529,7 +2613,7 @@ DNChart.prototype.MultiVariateBarChart = function (chartID, divID, chartGroup, o
 DNChart.prototype.DrawChartWrapper = function (parentDivID, chartID, cssClass, x, y, w, h, dataA, dataB) {
 
     //--00-- Set a good CSS default
-    if (!IsDefined(cssClass)) {
+    if (!dn.IsDefined(cssClass)) {
         cssClass = "ChartBox";
     }
 
@@ -2553,13 +2637,13 @@ DNChart.prototype.DrawChartWrapper = function (parentDivID, chartID, cssClass, x
         ;
 
     //--04-- Set the optional data A attribute if defined
-    if (IsDefined(dataA)) {
+    if (dn.IsDefined(dataA)) {
         chartWrapper
             .attr("data-a", dataA);
     }
 
     //--05-- Set the optional data B attribute if defined
-    if (IsDefined(dataB)) {
+    if (dn.IsDefined(dataB)) {
         chartWrapper
             .attr("data-b", dataB);
     }
@@ -2572,7 +2656,7 @@ DNChart.prototype.DrawChartWrapper = function (parentDivID, chartID, cssClass, x
 DNChart.prototype.DrawChartSVGCanvas = function (chartWrapperObj, chartID, x, y, w, h, translateX, translateY) {
 
     //--00-- Get the chart wrapper object if it was null...
-    if (! IsDefined(chartWrapperObj)) {
+    if (! dn.IsDefined(chartWrapperObj)) {
         chartWrapperObj = d3.select("#" + chartID + "Div");
     }
 
@@ -2596,12 +2680,12 @@ DNChart.prototype.DrawChartTitle = function (chartWrapperObj, chartID, cssClass,
     let doDraw = false;
 
     //--00-- Get the chart wrapper object if it was null...
-    if (!IsDefined(chartWrapperObj)) {
+    if (!dn.IsDefined(chartWrapperObj)) {
         chartWrapperObj = d3.select("#" + chartID + "Div");
     }
 
     // Add the chart title if there is some text to include
-    if (IsDefined(titleText) && titleText !== "") {
+    if (dn.IsDefined(titleText) && titleText !== "") {
 
         let cTitle = chartWrapperObj.select("." + cssClass);
 
@@ -2653,11 +2737,11 @@ DNChart.prototype.SetOptions = function (options) {
 };
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 DNChart.prototype.CheckOptionsDefined = function (oNameList, chartType, chartName) {
-    if (IsDefined(oNameList) && oNameList.length) {
+    if (dn.IsDefined(oNameList) && oNameList.length) {
         for (let i = 0; i < oNameList.length; i++) {
-            if (!IsDefined(this.GetOption(oNameList[i]))) {
+            if (!dn.IsDefined(this.GetOption(oNameList[i]))) {
                 console.warn("dn.js - " + chartType + " ("
-                    + ((IsDefined(chartName) && chartName !== "") ? chartName : "unknown name")
+                    + ((dn.IsDefined(chartName) && chartName !== "") ? chartName : "unknown name")
                     + ") is missing the required option definition for: " + oNameList[i] + ".  Fix this by adding it to the declaration of your chart.");
             }
         }
@@ -2673,7 +2757,7 @@ DNChart.prototype.DrawBarChart = function (chartData) {
     //this.CheckOptionsDefined(
     //    ["DivID", "Names1", "OffsetX", "OffsetY", "MaxWidth", "MaxHeight", "LegendOffset", "ChartTitle", "CssClass", "LegendMaxCharLength", "ShowHoverOver"],
     //    dn.GetObjInList(this.ChartGroup.ChartList, "ChartType", this.ChartType).Name,
-    //    IsDefined(this.ChartTitle) ? this.ChartTitle : ""
+    //    dn.IsDefined(this.ChartTitle) ? this.ChartTitle : ""
     //);
 
     // Set all the relevant variables from the global parameters
@@ -2698,16 +2782,16 @@ DNChart.prototype.DrawBarChart = function (chartData) {
     this.RemoveExistingSVG();
 
     //--0-- Ensure that the DIV ID is set and use a good default if not ...
-    if (!IsDefined(divID) || divID === "") {
+    if (!dn.IsDefined(divID) || divID === "") {
         divID = "DataVis";
     }
 
     // Jul-18 - Allow custom styles to be set for the bars
-    customStyle = (! IsDefined(customStyle) || customStyle === "") ? "BChart" : customStyle;
+    customStyle = (! dn.IsDefined(customStyle) || customStyle === "") ? "BChart" : customStyle;
 
-    maxWidth = (!IsDefined(maxWidth) || maxWidth === 0) ? 490 : maxWidth;
-    maxHeight = (!IsDefined(maxHeight) || maxHeight === 0) ? 300 : maxHeight;
-    yAxisCrossing = (!IsDefined(yAxisCrossing) || yAxisCrossing === 0) ? dn.defaultYAxisCrossing : yAxisCrossing;
+    maxWidth = (!dn.IsDefined(maxWidth) || maxWidth === 0) ? 490 : maxWidth;
+    maxHeight = (!dn.IsDefined(maxHeight) || maxHeight === 0) ? 300 : maxHeight;
+    yAxisCrossing = (!dn.IsDefined(yAxisCrossing) || yAxisCrossing === 0) ? dn.defaultYAxisCrossing : yAxisCrossing;
 
     // Set the titles using the lookup lists
     this.ApplyTitleFromLookupList(chartData, lookupList, maxTxtLength, false);
@@ -2900,22 +2984,22 @@ DNChart.prototype.DrawColumnChart = function (chartData) {
     let showHoverOver = this.ShowHoverOver;
 
     // Aug-19 - set the max slider width based on whether or not this is a STOCK visualisation or not.  We identify whether this chart is the STOCK option by whether a stock option has been specified, and whether the stock ID is the same as this chart id.
-    let isStockVisualisation = (IsDefined(cg.singleOptionDimension) && cg.singleOptionDimension.ID === chartID);
+    let isStockVisualisation = (dn.IsDefined(cg.singleOptionDimension) && cg.singleOptionDimension.ID === chartID);
 
     //-----0----- Remove any existing SVG with the same ID as this chart - this has become an issue when managing the resizing...
     this.RemoveExistingSVG();
 
     //--0-- Ensure that the DIV ID is set and use a good default if not ...
-    if (! IsDefined(divID) || divID === "") {
+    if (! dn.IsDefined(divID) || divID === "") {
         divID = "DataVis";
     }
 
     // Jul-18 - Allow custom styles to be set for the bars
-    customStyle = (! IsDefined(customStyle) || customStyle === "") ? "CChart" : customStyle;
+    customStyle = (! dn.IsDefined(customStyle) || customStyle === "") ? "CChart" : customStyle;
 
-    maxWidth = (! IsDefined(maxWidth) || maxWidth === 0) ? 490 : maxWidth;
-    maxHeight = (!IsDefined(maxHeight) || maxHeight === 0) ? 300 : maxHeight;
-    xAxisCrossing = (!IsDefined(xAxisCrossing) || xAxisCrossing === 0) ? dn.defaultYAxisCrossing : xAxisCrossing;
+    maxWidth = (! dn.IsDefined(maxWidth) || maxWidth === 0) ? 490 : maxWidth;
+    maxHeight = (!dn.IsDefined(maxHeight) || maxHeight === 0) ? 300 : maxHeight;
+    xAxisCrossing = (!dn.IsDefined(xAxisCrossing) || xAxisCrossing === 0) ? dn.defaultYAxisCrossing : xAxisCrossing;
 
     //-----2----- Set the titles using the lookup lists
     this.ApplyTitleFromLookupList(chartData, lookupList, maxTxtLength, false);
@@ -2944,7 +3028,7 @@ DNChart.prototype.DrawColumnChart = function (chartData) {
 
     // Now we have to assume that the data vis people are not stupid and dont try to add in too many bars into the space
     // but we do want to ensure a max so that there is general consistency between the views.
-    let maxBarWidth = 40;
+    let maxBarWidth = dn.defaultColumnChartMaxBarWidth; // 40;
     barWidth = (barWidth > maxBarWidth) ? maxBarWidth : barWidth;
 
     // get the actual width of the chart ....
@@ -3173,20 +3257,20 @@ DNChart.prototype.DrawLineChart = function (chartData) {
     this.RemoveExistingSVG();
 
     //--0-- Ensure that the DIV ID is set and use a good default if not ...
-    if (!IsDefined(divID) || divID === "") {
+    if (!dn.IsDefined(divID) || divID === "") {
         divID = "DataVis";
     }
 
     // Jul-18 - Allow custom styles to be set for the bars
-    customStyle = (!IsDefined(customStyle) || customStyle === "") ? "LChart" : customStyle;
+    customStyle = (!dn.IsDefined(customStyle) || customStyle === "") ? "LChart" : customStyle;
 
-    maxWidth = (!IsDefined(maxWidth) || maxWidth === 0) ? 500 : maxWidth;
-    maxHeight = (!IsDefined(maxHeight) || maxHeight === 0) ? 300 : maxHeight;
+    maxWidth = (!dn.IsDefined(maxWidth) || maxWidth === 0) ? 500 : maxWidth;
+    maxHeight = (!dn.IsDefined(maxHeight) || maxHeight === 0) ? 300 : maxHeight;
 
     // if need to expose this, then need to add another param ...
     var margin = dn.defaultLineGraphMargins;
 
-    var heightReductionDueToTitle = (IsDefined(chartTitle) && chartTitle !== "") ? dn.defaultTitleHeight + dn.defaultChartBuffer : 0;
+    var heightReductionDueToTitle = (dn.IsDefined(chartTitle) && chartTitle !== "") ? dn.defaultTitleHeight + dn.defaultChartBuffer : 0;
 
     // Append the div wrapper to the given div
     let chartWrapper = this.DrawChartWrapper(divID, chartID, null, xLoc, yLoc, maxWidth, maxHeight,
@@ -3347,15 +3431,15 @@ DNChart.prototype.DrawPieChart = function (chartData) {
     this.RemoveExistingSVG();
 
     //--0-- Ensure that the DIV ID is set and use a good default if not ...
-    if (!IsDefined(divID) || divID === "") {
+    if (!dn.IsDefined(divID) || divID === "") {
         divID = "DataVis";
     }
 
-    maxWidth = (!IsDefined(maxWidth) || maxWidth === 0) ? 250 : maxWidth;
-    maxHeight = (!IsDefined(maxHeight) || maxHeight === 0) ? 250 : maxHeight;
+    maxWidth = (!dn.IsDefined(maxWidth) || maxWidth === 0) ? 250 : maxWidth;
+    maxHeight = (!dn.IsDefined(maxHeight) || maxHeight === 0) ? 250 : maxHeight;
 
     // for the legend rectangle size 16 better for 1em (16px) and the default is 10px.
-    let legendRectSize = (IsDefined(dn.defaultPieDonutLegendRectangleSize) && dn.defaultPieDonutLegendRectangleSize > 0) ? dn.defaultPieDonutLegendRectangleSize : 10;
+    let legendRectSize = (dn.IsDefined(dn.defaultPieDonutLegendRectangleSize) && dn.defaultPieDonutLegendRectangleSize > 0) ? dn.defaultPieDonutLegendRectangleSize : 10;
     let legendSpacing = 4;
 
     // Jan-2020 - Added to shuffle the pie charts up a little...
@@ -3382,8 +3466,8 @@ DNChart.prototype.DrawPieChart = function (chartData) {
 
 
 
-    if (IsDefined(lookupList)) {
-        if (!IsDefined(useSimpleColours) || useSimpleColours === false) {
+    if (dn.IsDefined(lookupList)) {
+        if (!dn.IsDefined(useSimpleColours) || useSimpleColours === false) {
             customColourRamp = dn.StrimColourRamp2(customColourRamp, indexesInDataList);
         } else {
             customColourRamp = dn.StrimColourRamp(customColourRamp, chartData.length);
@@ -3405,7 +3489,7 @@ DNChart.prototype.DrawPieChart = function (chartData) {
     // D3 - category20b has moved in the V4 API and is no longer available in the V5 API...
 //    let color = d3.scaleOrdinal(d3.schemeCategory20b);
     let color = d3.scaleOrdinal(d3.schemeCategory10);
-    if (IsDefined(customColourRamp)) {
+    if (dn.IsDefined(customColourRamp)) {
         color = d3.scaleOrdinal().range(customColourRamp);
     }
 
@@ -3466,7 +3550,7 @@ DNChart.prototype.DrawPieChart = function (chartData) {
 
 
     // check the legendOffset is functioning
-    legendOffset = (!IsDefined(legendOffset)) ? 0 : +legendOffset;
+    legendOffset = (!dn.IsDefined(legendOffset)) ? 0 : +legendOffset;
 
     let legend = svg.selectAll('.PCLegend')
         .data(color.domain())
@@ -3545,13 +3629,13 @@ DNChart.prototype.DrawSankey = function (chartData) {
     this.RemoveExistingSVG();
 
     //--0-- Ensure that the DIV ID is set and use a good default if not ...
-    if (!IsDefined(divID) || divID === "") {
+    if (!dn.IsDefined(divID) || divID === "") {
         divID = "DataVis";
     }
 
     //--1-- Calculate the max width and height of the div enforcing some reasonable minimum sizes
-    maxWidth = (!IsDefined(maxWidth) || maxWidth === 0) ? 500 : maxWidth;
-    maxHeight = (!IsDefined(maxHeight) || maxHeight === 0) ? 300 : maxHeight;
+    maxWidth = (!dn.IsDefined(maxWidth) || maxWidth === 0) ? 500 : maxWidth;
+    maxHeight = (!dn.IsDefined(maxHeight) || maxHeight === 0) ? 300 : maxHeight;
 
     //--2-- Build the Div wrapper ....
     let chartWrapper = this.DrawChartWrapper(divID, chartID, null, xLoc, yLoc, maxWidth, maxHeight, null, null);
@@ -3638,7 +3722,8 @@ DNChart.prototype.UpdateSankey = function (chartData) {
         .attr("height", d => d.y1 - d.y0)
         .attr("width", d => d.x1 - d.x0)
         .style("fill", function (d) {
-            return "#" + d.Colour;
+//            return "#" + d.Colour;
+            return d.Colour;
         });
 
 
@@ -3765,18 +3850,18 @@ DNChart.prototype.DrawMap = function (chartData, chartDataSubGeographic) {
     this.RemoveExistingSVG();
 
     //--0-- Ensure that the DIV ID is set and use a good default if not ...
-    if (!IsDefined(divID) || divID === "") {
+    if (!dn.IsDefined(divID) || divID === "") {
         divID = "DataVis";
     }
 
     //--1-- Set sensible defaults ...
-    maxWidth = (!IsDefined(maxWidth) || maxWidth === 0) ? 500 : maxWidth;
-    maxHeight = (!IsDefined(maxHeight) || maxHeight === 0) ? 300 : maxHeight;
+    maxWidth = (!dn.IsDefined(maxWidth) || maxWidth === 0) ? 500 : maxWidth;
+    maxHeight = (!dn.IsDefined(maxHeight) || maxHeight === 0) ? 300 : maxHeight;
 
-    if (!IsDefined(centroid)) {
+    if (!dn.IsDefined(centroid)) {
         centroid = dn.defaultMapCentroid;
     }
-    if (!IsDefined(zoomLevel)) {
+    if (!dn.IsDefined(zoomLevel)) {
         zoomLevel = dn.defaultMapZoomLevel;
     }
 
@@ -3825,7 +3910,7 @@ DNChart.prototype.DrawMap = function (chartData, chartDataSubGeographic) {
     //--3-- Create the map ... (but only if it does not already exist)
     let meep = cg.meep;
 
-    if (IsDefined(cg.meep)) {
+    if (dn.IsDefined(cg.meep)) {
         // Do nothing, unless the size has changed, in which case we recentre the view by invalidating the size
         if (sizeHasChanged) {
             meep.invalidateSize(true);
@@ -3885,7 +3970,7 @@ DNChart.prototype.DrawMap = function (chartData, chartDataSubGeographic) {
 
 
     //--5-- Remove any existing bubbles from the map and clear the labels
-    if (IsDefined(cg.mapMarkerList)) {
+    if (dn.IsDefined(cg.mapMarkerList)) {
         for (let key in cg.mapMarkerList) {
 
             // Remove the bubble from the map
@@ -3982,7 +4067,7 @@ DNChart.prototype.UpdateMap = function (dataFiltered) {
         let v2 = dn.GetObjInList( dataFiltered, "ID", v1.ID);
 
         let tempCount = 0;
-        if (IsDefined(v2)) {
+        if (dn.IsDefined(v2)) {
             tempCount = v2.Count;
         }
 
@@ -4008,17 +4093,17 @@ DNChart.prototype.UpdateMap = function (dataFiltered) {
         let mm1 = cg.mapMarkerList[this.ChartID + "_" + v1.ID + "_1"];
         let mm2 = cg.mapMarkerList[this.ChartID + "_" + v1.ID + "_2"];
         // Set the text, and apply the new radii for the original grey total (_1) and the filtered data (_2); and redraw the filtered data
-        if (IsDefined(mm1)) {
+        if (dn.IsDefined(mm1)) {
             mm1.options.textValue = str;
             mm1.setRadius(radius1);
         }
-        if (IsDefined(mm2)) {
+        if (dn.IsDefined(mm2)) {
             mm2.options.textValue = str;
             mm2.setRadius(radius2);
             mm2.redraw();
         }
         // Flag a warning if mm1 or mm2 were not defined
-        if (!IsDefined(mm1) || !IsDefined(mm2)) {
+        if (!dn.IsDefined(mm1) || !dn.IsDefined(mm2)) {
             console.warn("No map markers for ID:", v1.ID, v1.Title);
         }
 
@@ -4344,36 +4429,32 @@ DNChart.prototype.AddSVGDropShadow = function (svgObj) {
 // Pulls the title accross from the lookup list to the summary data (lists of objects with ID and Count attributes) and returns the data with the Title.
 DNChart.prototype.ApplyTitleFromLookupList = function (chartData, lookupList, maxTxtLength, doCheckIndexes) {
 
-    // This list of indexes is used for the pie charts to identify the values in the colour ramp to keep and the ones to ignore.
-    var indexesInDataList = [];
+    //--00-- This list of indexes is used for the pie charts to identify the values in the colour ramp to keep and the ones to ignore.
+    let indexesInDataList = [];
 
-    if (IsDefined(chartData)) {
+    if (dn.IsDefined(chartData)) {
 
-        // Set the titles for each chart data object using the lookup lists
+        //--01 Set the titles for each chart data object using the lookup lists (we default toe the ID of the object as that should always be present)
         for (let i = 0; i < chartData.length; i++) {
             let v1 = chartData[i];
 
             let tempTitle = v1.ID;
 
-            if (IsDefined(lookupList)) {
-                for (let j = 0; j < lookupList.length; j++) {
-                    let v2 = lookupList[j];
-                    // If we find a match, update the title and move on...
-                    if (v1.ID === v2.ID) {
-                        tempTitle = v2.Title;
+            if (dn.IsDefined(lookupList)) {
+                //--02-- Get the current index (note this gets the index, not the object)
+                let currentIndex = lookupList.findIndex(obj => obj.ID === v1.ID);
+                //--03-- If we found it get the title and add the index to the list if it does not already exist (we will make this list unique at the end)
+                if (currentIndex >= 0) {
+                    tempTitle = lookupList[currentIndex].Title;
 
-                        // Optimise not doing this to save a few CPU cycles
-                        if (IsDefined(doCheckIndexes) && doCheckIndexes === true && Contains(indexesInDataList, j) === false) {
-                            indexesInDataList.push(j);
-                        }
-
-                        break;
+                    if (dn.IsDefined(doCheckIndexes) && doCheckIndexes === true) {
+                        indexesInDataList.push(currentIndex);
                     }
                 }
             }
 
-            // Abbreviate it if needed ...
-            if (!IsDefined(tempTitle)) {
+            //--04-- Abbreviate it if needed and set the title.
+            if (!dn.IsDefined(tempTitle)) {
                 tempTitle = v1.ID;
             } else if (tempTitle.length > maxTxtLength) {
                 tempTitle = tempTitle.substring(0, maxTxtLength) + "...";
@@ -4382,6 +4463,11 @@ DNChart.prototype.ApplyTitleFromLookupList = function (chartData, lookupList, ma
         }
     }
 
+    //--05-- Now if we need to return the indexes, lets make then unique
+    if (dn.IsDefined(doCheckIndexes) && doCheckIndexes === true) {
+        indexesInDataList = dn.Unique(indexesInDataList);
+    }
+    
     return indexesInDataList;
 };
 
@@ -4390,7 +4476,7 @@ DNChart.prototype.ApplyTitleFromLookupList = function (chartData, lookupList, ma
 // Note that this assumes that the ID will always be an integer - this is probably ok, but beware!
 DNChart.prototype.JoinDataWithMapLookupList = function (chartData, lookupList, maxTxtLength) {
 
-    if (IsDefined(chartData)) {
+    if (dn.IsDefined(chartData)) {
 
         // Set the titles for each chart data object using the lookup lists
         for (let i = 0; i < chartData.length; i++) {
@@ -4398,12 +4484,12 @@ DNChart.prototype.JoinDataWithMapLookupList = function (chartData, lookupList, m
 
             let tempTitle = v1.ID;
 
-            if (IsDefined(lookupList)) {
+            if (dn.IsDefined(lookupList)) {
 
                 // use array.prototype.find - this should be more efficient than an inner for loop.
                 let v2 = dn.GetObjInList( lookupList, "ID", v1.ID);
 
-                if (IsDefined(v2)) {
+                if (dn.IsDefined(v2)) {
                     tempTitle = v2.Title;
                     v1.Latitude = v2.Latitude;
                     v1.Longitude = v2.Longitude;
@@ -4411,7 +4497,7 @@ DNChart.prototype.JoinDataWithMapLookupList = function (chartData, lookupList, m
             }
 
             // Abbreviate it if needed ...
-            if (!IsDefined(tempTitle)) {
+            if (!dn.IsDefined(tempTitle)) {
                 tempTitle = v1.ID;
             } else if (tempTitle.length > maxTxtLength) {
                 tempTitle = tempTitle.substring(0, maxTxtLength) + "...";
@@ -4429,7 +4515,7 @@ DNChart.prototype.UpdateBarChart = function (chartID, chartFullData, chartFilter
     let chartObj = d3.select("#" + chartID);
     let chartDivObj = d3.select("#" + chartID + "Div");
 
-    if (IsDefined(chartObj) && IsDefined(chartDivObj)) {
+    if (dn.IsDefined(chartObj) && dn.IsDefined(chartDivObj)) {
 
         //-----1----- Recreate the D3 x axis - we want to keep the same overall scale, but we need to rebuild it so that we can calculate the new height of the bars.
         // We store the two key attributes in data fields, so that we can reuse them here.  These define the limitations on the size of the chart.
@@ -4454,7 +4540,7 @@ DNChart.prototype.UpdateBarChart = function (chartID, chartFullData, chartFilter
             //--2a-- Now find the value for this object in the filtered data and get the new value
             // Refectored to avoid the inner loop
             let v2 = dn.GetObjInList(chartFilteredData, "ID", v1.ID);
-            if (IsDefined(v2)) {
+            if (dn.IsDefined(v2)) {
                 newWidth = v2.Count;
             }
 
@@ -4488,7 +4574,7 @@ DNChart.prototype.UpdateColumnChart = function (chartID, chartFullData, chartFil
     let chartObj = d3.select("#" + chartID);
     let chartDivObj = d3.select("#" + chartID + "Div");
 
-    if (IsDefined(chartObj) && IsDefined(chartDivObj)) {
+    if (dn.IsDefined(chartObj) && dn.IsDefined(chartDivObj)) {
 
         //-----1----- Recreate the D3 y axis - we want to keep the same overall scale, but we need to rebuild it so that we can calculate the new height of the bars.
         // We store the two key attributes in data fields, so that we can reuse them here.  These define the limitations on the size of the chart.
@@ -4517,7 +4603,7 @@ DNChart.prototype.UpdateColumnChart = function (chartID, chartFullData, chartFil
             //--2a-- Now find the value for this object in the filtered data and get the new value
             // Refectored to avoid the inner loop
             let v2 = dn.GetObjInList(chartFilteredData, "ID", v1.ID);
-            if (IsDefined(v2)) {
+            if (dn.IsDefined(v2)) {
                 // Lets get the new height and Y attributes based on the filtered value
                 newHeight = height - y(v2.Count);
                 newY = y(v2.Count);
@@ -4543,7 +4629,7 @@ DNChart.prototype.UpdateLineChart = function (chartID, chartFullData, chartFilte
     var chartObj = d3.select("#" + chartID);
     var chartDivObj = d3.select("#" + chartID + "Div");
 
-    if (IsDefined(chartObj) && IsDefined(chartDivObj)) {
+    if (dn.IsDefined(chartObj) && dn.IsDefined(chartDivObj)) {
 
         //-----1----- Recreate the D3 x and y axis
         width = chartObj.attr("width");
@@ -4617,7 +4703,7 @@ DNChart.prototype.UpdatePieChart = function (chartID, chartFullData, chartFilter
     let chartObj = d3.select("#" + chartID);
     let chartDivObj = d3.select("#" + chartID + "Div");
 
-    if (IsDefined(chartObj) && IsDefined(chartDivObj)) {
+    if (dn.IsDefined(chartObj) && dn.IsDefined(chartDivObj)) {
 
         //-----1----- Rebuild the pie shell
         let width = chartObj.attr("width");
@@ -4626,8 +4712,8 @@ DNChart.prototype.UpdatePieChart = function (chartID, chartFullData, chartFilter
         // get the data from the two specific data attributes
         let tempDataVA = chartDivObj.attr("data-a");
         let tempDataVB = chartDivObj.attr("data-b");
-        let donutW = (IsDefined(tempDataVA)) ? +tempDataVA : dn.defaultPieDonutWidth;
-        let pieBuffer = (IsDefined(tempDataVB)) ? +tempDataVB : dn.defaultPieMarginBuffer;
+        let donutW = (dn.IsDefined(tempDataVA)) ? +tempDataVA : dn.defaultPieDonutWidth;
+        let pieBuffer = (dn.IsDefined(tempDataVB)) ? +tempDataVB : dn.defaultPieMarginBuffer;
 
         // get the radius of the pie
         let radius = Math.min(width - pieBuffer, height - pieBuffer) / 2;
@@ -4701,7 +4787,7 @@ DNChart.prototype.DoColumnChartGhosting = function (chartID, chartFullData, char
     let chartObj = d3.select("#" + chartID);
     let chartDivObj = d3.select("#" + chartID + "Div");
 
-    if (IsDefined(chartObj) && IsDefined(chartDivObj)) {
+    if (dn.IsDefined(chartObj) && dn.IsDefined(chartDivObj)) {
 
         //-----1----- Recreate the D3 y axis - we want to keep the same overall scale, but we need to rebuild it so that we can calculate the new height of the bars.
         // We store the two key attributes in data fields, so that we can reuse them here.  These define the limitations on the size of the chart.
@@ -4730,7 +4816,7 @@ DNChart.prototype.DoColumnChartGhosting = function (chartID, chartFullData, char
             //--2a-- Now find the value for this object in the filtered data and get the new value
             // Jan-20 - refactor to avoid the inner loop...
             let v2 = dn.GetObjInList(chartFilteredData, "ID", v1.ID);
-            if (IsDefined(v2)) {
+            if (dn.IsDefined(v2)) {
                 // Lets get the new height and Y attributes based on the filtered value
                 newHeight = height - y(v2.Count);
                 newY = y(v2.Count);
@@ -4760,16 +4846,16 @@ DNChart.prototype.GetTransitionDuration = function (isMap) {
     // Option 1 - set a reasonable default to use in case of a disaster with the two options below
     let transitionMS = 2000; // TEST
 
-    if (IsDefined(cg)) {
+    if (dn.IsDefined(cg)) {
         // Option 2a - use the default transition
         transitionMS = cg.transitionMSDefault;
         // Option 2b - use the default map transition
-        if (IsDefined(isMap) && isMap === true) {
+        if (dn.IsDefined(isMap) && isMap === true) {
             transitionMS = dn.defaultMapTransition;
         }
 
         // Option 3 - if the vis includes a bar chart slider and it is playing, lets minimise these animations as they distract!
-        if (IsDefined(cg.columnChartSlider) && cg.columnChartSlider.IsPlaying()) {
+        if (dn.IsDefined(cg.columnChartSlider) && cg.columnChartSlider.IsPlaying()) {
             transitionMS = cg.transitionMSWhilePlaying; // 1;
         }
     }
@@ -4808,25 +4894,25 @@ DNURLEditor.prototype.URLApplyFilters = function (chartIDList, currentURL, dnCha
     let activeChartID = null;
 
     //--01-- If the dnChartGroup, or the chart ID List is not defined, lets just get out of here immediately...
-    if (!IsDefined(dnChartGroup) || !IsDefined(chartIDList) || chartIDList.length===0) {
+    if (!dn.IsDefined(dnChartGroup) || !dn.IsDefined(chartIDList) || chartIDList.length===0) {
         return activeChartID;
     }
 
     //--02-- Only run this if this is a modern browser
-    if (typeof URLSearchParams === "function" && IsDefined(chartIDList)) {
+    if (typeof URLSearchParams === "function" && dn.IsDefined(chartIDList)) {
 
         //--03a-- if the current URL is null, then lets get it again here...  We have this option as the filtering etc that is conducted when the charts are loaded may have changed this.
-        if (!IsDefined(currentURL)) {
+        if (!dn.IsDefined(currentURL)) {
             currentURL = new URL(window.location.href);
         }
 
         //--03b-- - If no parameters at all have been returned, and there is a single option dimension set, then lets get out of here
         let numParamsSet = 0;
-        if (IsDefined(dnChartGroup.singleOptionDimension)) {
+        if (dn.IsDefined(dnChartGroup.singleOptionDimension)) {
             // We go through each chart and see if any parameters related to this were set.
             for (let i = 0; i < chartIDList.length; i++) {
                 let cValListStr = currentURL.searchParams.get(chartIDList[i]);
-                if (IsDefined(cValListStr) && cValListStr !== "") {
+                if (dn.IsDefined(cValListStr) && cValListStr !== "") {
                     numParamsSet++;
                 }
             }
@@ -4852,12 +4938,12 @@ DNURLEditor.prototype.URLApplyFilters = function (chartIDList, currentURL, dnCha
 
             //--04b-- get the value list and see if some values have been set and convert this to an array, ensuring that the numeric values are cast appropriately
             let cValListStr = currentURL.searchParams.get(cID);
-            if (IsDefined(cValListStr) && cValListStr !== "") {
+            if (dn.IsDefined(cValListStr) && cValListStr !== "") {
 
                 cValList = cValListStr.split(",");
 
                 // Ensure the numeric parameters are cast appropriately and count the number of parameters
-                if (IsDefined(cValList) && cValList.length > 0) {
+                if (dn.IsDefined(cValList) && cValList.length > 0) {
                     for (let j = 0; j < cValList.length; j++) {
                         // Sep-19 - Use regexp to see if this is a number, and if it is lets parse it as such...
                         if (/^\d+$/.test(cValList[j]) === true) {
@@ -4872,11 +4958,11 @@ DNURLEditor.prototype.URLApplyFilters = function (chartIDList, currentURL, dnCha
 
             //--04d-- This is the heart of the matter - we difference the two arrays to identify the union minus the intersection - i.e. the values unique to one list or the other
             let difference = [];
-            if (!IsDefined(prevObjList) && !IsDefined(cValList)) {   // Case 1 - both lists are null, so ignore
+            if (!dn.IsDefined(prevObjList) && !dn.IsDefined(cValList)) {   // Case 1 - both lists are null, so ignore
                 // Do nothing
-            } else if (!IsDefined(prevObjList)) {                                // Case 2- the previous list is null, so just take the new list from the URL
+            } else if (!dn.IsDefined(prevObjList)) {                                // Case 2- the previous list is null, so just take the new list from the URL
                 difference = cValList;
-            } else if (!IsDefined(cValList)) {                                      // Case 3- the new list from the URL is null, so just take the previous list
+            } else if (!dn.IsDefined(cValList)) {                                      // Case 3- the new list from the URL is null, so just take the previous list
                 difference = prevObjList;
             } else {                                                                            // Case 4- do a differencing of the two array lists
 
@@ -4901,7 +4987,7 @@ DNURLEditor.prototype.URLApplyFilters = function (chartIDList, currentURL, dnCha
                 }
 
                 //--ACTION 2-- Toggle the selected object(s) on the chart
-                if (IsDefined(doToggleSelectedObjects) && doToggleSelectedObjects === true) {
+                if (dn.IsDefined(doToggleSelectedObjects) && doToggleSelectedObjects === true) {
                     if (dnChartGroup.IsSingleOptionDimension(cID, null)) {
                         // We ignore the toggling if this is a single option dimension... as this will be well handled in chartGroup.ApplyFilter
                     } else {
@@ -4918,7 +5004,7 @@ DNURLEditor.prototype.URLApplyFilters = function (chartIDList, currentURL, dnCha
     }
 
     // Then lastly, lets refilter the data if there is some filtering to do!
-    if (IsDefined(activeChartID) && activeChartID !== "") {
+    if (dn.IsDefined(activeChartID) && activeChartID !== "") {
 
         //--4-- Refilter the data - IDs from the same chart should be filtered as OR and IDs from different charts should be filtered as AND ...
         // WARNING - at this stage the filtered data will be potentially WRONG for dynamically generated data as this has not yet been regenerated
@@ -4954,14 +5040,14 @@ DNURLEditor.prototype.URLUpdate = function (objListToFilter, fullChartList) {
 
             //--3a-- Build the CSV list of objects
             let cObjList = "";
-            if (IsDefined(obj.Objs) && obj.Objs.length > 0) {
+            if (dn.IsDefined(obj.Objs) && obj.Objs.length > 0) {
                 cObjList = obj.Objs.join(",");
             }
 
             let cValListStr = currentURL.searchParams.get(cID);
 
             //--3c-- If it exists - delete or update it; otherwise add it
-            if (IsDefined(cValListStr) && cValListStr !== "") {
+            if (dn.IsDefined(cValListStr) && cValListStr !== "") {
 
                 //--3d-- Delete it if there are no current objects selected; otherwise update it.
                 if (cObjList === null || cObjList === "") {               // Delete
@@ -4971,7 +5057,7 @@ DNURLEditor.prototype.URLUpdate = function (objListToFilter, fullChartList) {
                     currentURL.searchParams.set(cID, cObjList);
                     hasChanged = true;
                 }
-            } else if (IsDefined(cObjList) && cObjList !== "") {          // Add
+            } else if (dn.IsDefined(cObjList) && cObjList !== "") {          // Add
                 currentURL.searchParams.append(cID, cObjList);
                 hasChanged = true;
             }
@@ -4985,9 +5071,9 @@ DNURLEditor.prototype.URLUpdate = function (objListToFilter, fullChartList) {
             let cValListStr = currentURL.searchParams.get(cID);
 
             // If it exists in the search string, but not in the list of objects to filter, then delete it
-            if (IsDefined(cValListStr) && cValListStr !== "") {
+            if (dn.IsDefined(cValListStr) && cValListStr !== "") {
                 // originally - this.objsToFilter
-                if (!IsDefined(dn.GetObjInList(objListToFilter, "ID", cID))) {
+                if (!dn.IsDefined(dn.GetObjInList(objListToFilter, "ID", cID))) {
                     currentURL.searchParams.delete(cID);
                     hasChanged = true;
                 }
@@ -5018,7 +5104,7 @@ DNURLEditor.prototype.URLGetParameter = function (paramName) {
         let cValListStr = currentURL.searchParams.get(paramName);
 
         //--3c-- check it exists
-        if (IsDefined(cValListStr) === true && cValListStr !== "") {
+        if (dn.IsDefined(cValListStr) === true && cValListStr !== "") {
 
             values = cValListStr;
 
@@ -5058,9 +5144,20 @@ DNURLEditor.prototype.URLShare = function () {
         //--4-- Remove the temporary child element
         document.body.removeChild(dummy);
 
-        //--5-- Inform the user
-        ShowInfoSplash("The link to the current view has been copied to the clipboard", "InfoClassSuccess");
-        HideInfoSplash(3000);
+        //--5-- Inform the user (Adapted from ShowInfoSplash and HideInfoSplash)
+        // Show it
+        let infoSplashObj = d3.select("#" + dn.infoSplashDivID);
+        infoSplashObj
+            .attr("class", dn.infoSplashCssClass)
+            .html("The link to the current view has been copied to the clipboard")
+            .style("display", "inline-block").style('opacity', 1);
+
+        // Slowly hide it
+        infoSplashObj.transition().duration(dn.infoSplashTimeoutMS).style("opacity", 0);
+        // And then hide them and reset the opacity
+        window.setTimeout(function () {
+            infoSplashObj.style('display', 'none').style("opacity", 1);
+        }, dn.infoSplashTimeoutMS);
     }
 };
 
@@ -5077,6 +5174,6 @@ DNURLEditor.prototype.GetParentUrl = function () {
     return parentUrl;
 };
 
-
+//--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 // The new SWEET ES6 class syntax does not yet minify well!
 var dn = new DN();

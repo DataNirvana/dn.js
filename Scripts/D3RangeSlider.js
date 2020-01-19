@@ -53,7 +53,7 @@ function CreateD3RangeSlider(rangeMin, rangeMax, containerSelector, playButton, 
     let container = d3.select(containerSelector);
     let playing = false;
     let resumePlaying = false; // Used by drag-events to resume playing on release
-    let playingRate = (! IsDefined(playingRateMS)) ? 100 : playingRateMS;
+    let playingRate = (! dn.IsDefined(playingRateMS)) ? 100 : playingRateMS;
     let containerHeight = container.node().offsetHeight;
 
     let sliderBox = null;

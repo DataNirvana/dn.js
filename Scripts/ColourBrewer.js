@@ -342,20 +342,32 @@ var colourbrewer = { YlGn: {
     // These are the UNHCR primary colours
     UNHCRBlue: {
         1: [
-        "0072BC", "0C78BF", "187FC2", "2486C5", "308CC8", "3C93CB", "489ACF", "55A1D2", "61A7D5", "6DAED8", "79B5DB",
-        "85BBDF", "91C2E2", "9DC9E5", "AAD0E8", "B6D6EB", "C2DDEF", "CEE4F2", "DAEAF5", "E6F1F8", "F2F8FB", "FFFFFF"
+        "#0072BC", "#0C78BF", "#187FC2", "#2486C5", "#308CC8", "#3C93CB", "#489ACF", "#55A1D2", "#61A7D5", "#6DAED8", "#79B5DB",
+        "#85BBDF", "#91C2E2", "#9DC9E5", "#AAD0E8", "#B6D6EB", "#C2DDEF", "#CEE4F2", "#DAEAF5", "#E6F1F8", "#F2F8FB", "#FFFFFF"
         ]
     },
     UNHCRRed: {
         1: [
-            "750A18", "7B1523", "82212E", "882D39", "8F3844", "95444F", "9C505A", "A35B65", "A96770", "B0737B", "B67E86",
-            "BD8A91", "C3969C", "CAA1A7", "D1ADB2", "D7B9BD", "DEC4C8", "E4D0D3", "EBDCDE", "F1E7E9", "F8F3F4", "FFFFFF"
+            "#750A18", "#7B1523", "#82212E", "#882D39", "#8F3844", "#95444F", "#9C505A", "#A35B65", "#A96770", "#B0737B", "#B67E86",
+            "#BD8A91", "#C3969C", "#CAA1A7", "#D1ADB2", "#D7B9BD", "#DEC4C8", "#E4D0D3", "#EBDCDE", "#F1E7E9", "#F8F3F4", "#FFFFFF"
         ]
     },
     UNHCRGreen: {
         1: [
-            "00B398", "0CB69C", "18BAA1", "24BDA6", "30C1AB", "3CC5B0", "48C8B5", "55CCBA", "61CFBF", "6DD3C4", "79D7C9",
-            "85DACD", "91DED2", "9DE2D7", "AAE5DC", "B6E9E1", "C2ECE6", "CEF0EB", "DAF4F0", "E6F7F5", "F2FBFA", "FFFFFF"
+            "#00B398", "#0CB69C", "#18BAA1", "#24BDA6", "#30C1AB", "#3CC5B0", "#48C8B5", "#55CCBA", "#61CFBF", "#6DD3C4", "#79D7C9",
+            "#85DACD", "#91DED2", "#9DE2D7", "#AAE5DC", "#B6E9E1", "#C2ECE6", "#CEF0EB", "#DAF4F0", "#E6F7F5", "#F2FBFA", "#FFFFFF"
+        ]
+    },
+    // From http://popstats.unhcr.org/en/overview
+    UNHCRPoCs: {
+        1: [
+            "#8397aa", // Asylum seekers
+            "#a3e0d7", // IDPs
+            "#fab7b7", // Refugees
+            "#a6a6a6", // Returned IDPs
+            "#c6c6c6", // Returned refugees
+            "#759a90", // Stateless
+            "#c9aca9" // Others of concern
         ]
     },
 
@@ -363,20 +375,36 @@ var colourbrewer = { YlGn: {
     // And these are the inter-agency colours ...
     IABlue: {
         1: [
-        "2C8AC1", "368FC3", "4095C6", "4A9AC9", "54A0CC", "5EA5CF", "68ABD2", "72B1D5", "7CB6D8", "86BCDB", "90C1DE",
-        "9AC7E1", "A4CCE4", "AED2E7", "B8D8EA", "C2DDED", "CCE3F0", "D6E8F3", "E0EEF6", "EAF3F9", "F4F9FC", "FFFFFF"
+        "#2C8AC1", "#368FC3", "#4095C6", "#4A9AC9", "#54A0CC", "#5EA5CF", "#68ABD2", "#72B1D5", "#7CB6D8", "#86BCDB", "#90C1DE",
+        "9AC7E1", "#A4CCE4", "#AED2E7", "#B8D8EA", "#C2DDED", "#CCE3F0", "#D6E8F3", "#E0EEF6", "#EAF3F9", "#F4F9FC", "#FFFFFF"
+        ],
+        2: [
+            "2C8AC1", "#4A9AC9", "#68ABD2", "#86BCDB", 
+            "A4CCE4", "#C2DDED", "#E0EEF6", "#FFFFFF"
         ]
+
     },
     IAOrange: {
         1: [
-            "E77B37", "E88140", "E9874A", "EA8D53", "EB945D", "EC9A66", "EDA070", "EFA779", "F0AD83", "F1B38C", "F2B996",
-            "F3C09F", "F4C6A9", "F5CCB2", "F7D3BC", "F8D9C5", "F9DFCF", "FAE5D8", "FBECE2", "FCF2EB", "FDF8F5", "FFFFFF"
+            "E77B37", "#E88140", "#E9874A", "#EA8D53", "#EB945D", "#EC9A66", "#EDA070", "#EFA779", "#F0AD83", "#F1B38C", "#F2B996",
+            "F3C09F", "#F4C6A9", "#F5CCB2", "#F7D3BC", "#F8D9C5", "#F9DFCF", "#FAE5D8", "#FBECE2", "#FCF2EB", "#FDF8F5", "#FFFFFF"
+        ],
+        2: [
+            "E77B37", "#EA8D53", "#EDA070", "#F1B38C", 
+            "F4C6A9", "#F8D9C5", "#FBECE2", "#FFFFFF"
         ]
     },
     IAPink: {
         1: [
-        "D23F67", "D4486E", "D65175", "D85A7C", "DA6383", "DC6C8B", "DE7592", "E17F99", "E388A0", "E591A8", "E79AAF",
-        "E9A3B6", "EBACBD", "EDB5C5", "F0BFCC", "F2C8D3", "F4D1DA", "F6DAE2", "F8E3E9", "FAECF0", "FCF5F7", "FFFFFF"
+        "D23F67", "#D4486E", "#D65175", "#D85A7C", "#DA6383", "#DC6C8B", "#DE7592", "#E17F99", "#E388A0", "#E591A8", "#E79AAF",
+        "E9A3B6", "#EBACBD", "#EDB5C5", "#F0BFCC", "#F2C8D3", "#F4D1DA", "#F6DAE2", "#F8E3E9", "#FAECF0", "#FCF5F7", "#FFFFFF"
+        ],
+        2: [
+            "#D23F67", "#D85A7C", "#DE7592", "#E591A8", 
+            "#EBACBD", "#F2C8D3", "#F8E3E9", "#FFFFFF"
+        ],
+        5: [
+            "#D23F67", "#D85A7C", "#E591A8", "#F2C8D3", "#F8E3E9"
         ]
     }
 };
