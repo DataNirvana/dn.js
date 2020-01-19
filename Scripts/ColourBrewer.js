@@ -386,18 +386,18 @@ var colourbrewer = { YlGn: {
     },
     IAOrange: {
         1: [
-            "E77B37", "#E88140", "#E9874A", "#EA8D53", "#EB945D", "#EC9A66", "#EDA070", "#EFA779", "#F0AD83", "#F1B38C", "#F2B996",
-            "F3C09F", "#F4C6A9", "#F5CCB2", "#F7D3BC", "#F8D9C5", "#F9DFCF", "#FAE5D8", "#FBECE2", "#FCF2EB", "#FDF8F5", "#FFFFFF"
+            "#E77B37", "#E88140", "#E9874A", "#EA8D53", "#EB945D", "#EC9A66", "#EDA070", "#EFA779", "#F0AD83", "#F1B38C", "#F2B996",
+            "#F3C09F", "#F4C6A9", "#F5CCB2", "#F7D3BC", "#F8D9C5", "#F9DFCF", "#FAE5D8", "#FBECE2", "#FCF2EB", "#FDF8F5", "#FFFFFF"
         ],
         2: [
-            "E77B37", "#EA8D53", "#EDA070", "#F1B38C", 
-            "F4C6A9", "#F8D9C5", "#FBECE2", "#FFFFFF"
+            "#E77B37", "#EA8D53", "#EDA070", "#F1B38C", 
+            "#F4C6A9", "#F8D9C5", "#FBECE2", "#FFFFFF"
         ]
     },
     IAPink: {
         1: [
-        "D23F67", "#D4486E", "#D65175", "#D85A7C", "#DA6383", "#DC6C8B", "#DE7592", "#E17F99", "#E388A0", "#E591A8", "#E79AAF",
-        "E9A3B6", "#EBACBD", "#EDB5C5", "#F0BFCC", "#F2C8D3", "#F4D1DA", "#F6DAE2", "#F8E3E9", "#FAECF0", "#FCF5F7", "#FFFFFF"
+        "#D23F67", "#D4486E", "#D65175", "#D85A7C", "#DA6383", "#DC6C8B", "#DE7592", "#E17F99", "#E388A0", "#E591A8", "#E79AAF",
+        "#E9A3B6", "#EBACBD", "#EDB5C5", "#F0BFCC", "#F2C8D3", "#F4D1DA", "#F6DAE2", "#F8E3E9", "#FAECF0", "#FCF5F7", "#FFFFFF"
         ],
         2: [
             "#D23F67", "#D85A7C", "#DE7592", "#E591A8", 
