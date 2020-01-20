@@ -42,7 +42,7 @@ function DN() {
 
     //-----------------------------------------------------------------------------------------------------------------------------------------------------
     // A list of the months ...
-    this.months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];          
+    this.months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
 
     //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -128,7 +128,7 @@ DN.prototype.URLEditor = function () {
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 // Summarises our dataset in HTML
 DN.prototype.DescribeDataset = function (divID, data, maxNumRows) {
-    
+
     if (dn.IsDefined(data) && data.length > 0) {
 
         // First lets try to build the table
@@ -145,7 +145,7 @@ DN.prototype.DescribeDataset = function (divID, data, maxNumRows) {
             let th = tHeadRow.append('th');
             th.append("div").html(propList[i] + "<br />" + data[0][propList[i]].constructor.name);
         }
-        
+
         // Set the data
         let tbdy = t.append('tbody');
 
@@ -213,7 +213,7 @@ DN.prototype.DescribeElement = function (divID, data, variableName, colToSum) {
         let dataSum = dn.GroupByAndSummarise(data, variableName, colToSum);
 
         console.log(dataSum);
-                
+
         // First lets try to build the table
         // Platform,FeedbackType,Title,Description,Email,DateCreated
         let divWrapper = d3.select("#" + divID);
@@ -821,7 +821,7 @@ DN.prototype.BuildLookupList = function (listOfObjs, paramName, startIndex) {
         lookupList = dn.Unique(listOfObjs.map(d => d[paramName])).map((x, i) => {
             return { ID: i+startIndex, Title: x };
         });
-        
+
     }
     return lookupList;
 };
@@ -1045,7 +1045,7 @@ DNChartGroup.prototype.SetSingleOptionDimension = function (chartID, defaultValu
     // then add it to the dimensions from the start ...
     // Dec-19 - with the responsive resizing of the charts - we need to check if the given chart ID exists already
     // Jan-20 XXX - lets try not doing this at all
-    
+
     if (dn.IsDefined(this.GetFilterParameters(chartID))) {
         for (let i = 0; i < this.objsToFilter.length; i++) {
             if (this.objsToFilter[i].ChartID === chartID) {
@@ -1060,7 +1060,7 @@ DNChartGroup.prototype.SetSingleOptionDimension = function (chartID, defaultValu
             Objs: [defaultValue]
         });
     }
-    
+
 };
 //-----------------------------------------------------------------------------------------------------------------------------------------------------
 /*
@@ -1176,7 +1176,7 @@ DNChartGroup.prototype.SetDropShadow = function (doShow) {
     //-- FF bug - Set the appropriate CSS class for the dropshadows ...
     this.dropShadowCSS =
         dn.DropShadowIsCSS()
-        //(dn.IsFirefox || dn.IsMobile) 
+        //(dn.IsFirefox || dn.IsMobile)
         ? "DropShadowCSS" : "DropShadowSVG";
 
     if (dn.IsDefined(doShow) && doShow === false) {
@@ -1207,7 +1207,7 @@ DNChartGroup.prototype.AddDynamicallyGeneratedDataVariable = function (sourceCol
     });
 };
 //-----------------------------------------------------------------------------------------------------------------------------------------------------
-// We use the targetColID as the primary key as in theory the source could be the source for more than one columns, 
+// We use the targetColID as the primary key as in theory the source could be the source for more than one columns,
 // but it can't logically follow that a target column could have more than source, as it would just be reset.
 DNChartGroup.prototype.SetDynamicallyGeneratedDataAttribute = function (targetColID, attrName, attrValue) {
 
@@ -1655,7 +1655,7 @@ DNChartGroup.prototype.GetFilteredDataBase = function (objListToFilter, dataVari
 
 //-----------------------------------------------------------------------------------------------------------------------------------------------------
 /*
-    The filtering is based on the selections in the objsToFilter global array.  
+    The filtering is based on the selections in the objsToFilter global array.
     Independent variables are filtered as AND, elements within the same variable are filtered as OR.
     For dynamic dimensions, a special case exists where we include both the source and target of dynamic dimensions as OR.
     One or two fields can be ignored from the filtering, which is critical so that the Sankey diagrams are effective ...
@@ -1665,7 +1665,7 @@ DNChartGroup.prototype.GetFilteredDataBase = function (objListToFilter, dataVari
     DNChartGroup.prototype.DoDataFiltering = function (objListToFilter, dataVariablesToIgnore) { //dataFieldToIgnore1, dataFieldToIgnore2) {
 
     let charts = this.charts;
-        
+
     //--00-- Refilter the data using the original data - IDs from the same chart should be filtered as OR and IDs from different charts should be filtered as AND ...
     // March 2019 - multivariate column charts are treated as AND, i.e. the intersection, as these are separate variables shown on the same chart...
     let localFilteredJSData = this.origJSData.filter(function (v) {
@@ -3862,7 +3862,7 @@ DNChart.prototype.UpdateSankey = function (chartData) {
     let chartWidth = this.MaxWidth;
     let chartHeight = this.MaxHeight;
 
-    let cg = this.ChartGroup;   
+    let cg = this.ChartGroup;
 
     //--01a-- Margin stuff and general setup
     let margins = dn.defaultSankeyMargins;
@@ -4256,7 +4256,7 @@ DNChart.prototype.UpdateMap = function (dataFiltered) {
 
     // Lets hash the filtered data so that the lookup in the loop below runs faster
     let dataFilteredHash = dn.HashArray(dataFiltered, "ID");
-    
+
     //--1-- Clear all the existing labels - we do this in a timeout so that the animation looks cool...
     setTimeout(function () {
         cg.mapLabelLayerGroup.clearLayers();
@@ -4402,7 +4402,7 @@ DNChart.prototype.CalculateBubbleRadius = function (areaCoefficient, dataVal) {
 DNChart.prototype.DrawBubble = function (chartID, objID, centroid, cssClass, radius, hoverTextTitle, hoverTextValue) {
 
     let cg = this.ChartGroup;
-        
+
     //--1-- Lets get stuck in with producing the bubble
     let bubble = L.circleMarker(centroid, {
         textTitle: hoverTextTitle, // the first line of text
@@ -4633,7 +4633,7 @@ DNChart.prototype.AddSVGDropShadow = function (svgObj) {
 // Pulls the title across from the lookup list to the summary data (lists of objects with ID and Count attributes) and returns the data with the Title.
 // Jan-20 updated to use the lookup hashes
 DNChart.prototype.ApplyTitleFromLookupList = function (chartData, maxTxtLength, doCheckIndexes) { // lookupList
-    
+
     //--00-- This list of indexes is used for the pie charts to identify the values in the colour ramp to keep and the ones to ignore.
     let indexesInDataList = [];
 
@@ -4678,7 +4678,7 @@ DNChart.prototype.ApplyTitleFromLookupList = function (chartData, maxTxtLength, 
     if (dn.IsDefined(doCheckIndexes) && doCheckIndexes === true) {
         indexesInDataList = dn.Unique(indexesInDataList);
     }
-    
+
     return indexesInDataList;
 };
 
@@ -5388,3 +5388,5 @@ DNURLEditor.prototype.GetParentUrl = function () {
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 // The new SWEET ES6 class syntax does not yet minify well!
 var dn = new DN();
+
+
