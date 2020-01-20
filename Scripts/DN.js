@@ -8,7 +8,7 @@
     Can also link to bubble charts produced using Leaflet.js
 
     #########################################################################
-    Version:  January 2020 - v2.55
+    Version:  January 2020 - v2.63
     #########################################################################
     Copyright © 2020 Data Nirvana Limited
 
@@ -124,20 +124,140 @@ DN.prototype.URLEditor = function () {
     return new DNURLEditor();
 };
 
-//-----------------------------------------------------------------------------------------------------------------------------------------------------
-DN.prototype.IsMobile = function () {
-    var check = false;
-    (function (a) { if (/(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine|fennec|hiptop|iemobile|ip(hone|od)|iris|kindle|lge |maemo|midp|mmp|mobile.+firefox|netfront|opera m(ob|in)i|palm( os)?|phone|p(ixi|re)\/|plucker|pocket|psp|series(4|6)0|symbian|treo|up\.(browser|link)|vodafone|wap|windows ce|xda|xiino/i.test(a) || /1207|6310|6590|3gso|4thp|50[1-6]i|770s|802s|a wa|abac|ac(er|oo|s\-)|ai(ko|rn)|al(av|ca|co)|amoi|an(ex|ny|yw)|aptu|ar(ch|go)|as(te|us)|attw|au(di|\-m|r |s )|avan|be(ck|ll|nq)|bi(lb|rd)|bl(ac|az)|br(e|v)w|bumb|bw\-(n|u)|c55\/|capi|ccwa|cdm\-|cell|chtm|cldc|cmd\-|co(mp|nd)|craw|da(it|ll|ng)|dbte|dc\-s|devi|dica|dmob|do(c|p)o|ds(12|\-d)|el(49|ai)|em(l2|ul)|er(ic|k0)|esl8|ez([4-7]0|os|wa|ze)|fetc|fly(\-|_)|g1 u|g560|gene|gf\-5|g\-mo|go(\.w|od)|gr(ad|un)|haie|hcit|hd\-(m|p|t)|hei\-|hi(pt|ta)|hp( i|ip)|hs\-c|ht(c(\-| |_|a|g|p|s|t)|tp)|hu(aw|tc)|i\-(20|go|ma)|i230|iac( |\-|\/)|ibro|idea|ig01|ikom|im1k|inno|ipaq|iris|ja(t|v)a|jbro|jemu|jigs|kddi|keji|kgt( |\/)|klon|kpt |kwc\-|kyo(c|k)|le(no|xi)|lg( g|\/(k|l|u)|50|54|\-[a-w])|libw|lynx|m1\-w|m3ga|m50\/|ma(te|ui|xo)|mc(01|21|ca)|m\-cr|me(rc|ri)|mi(o8|oa|ts)|mmef|mo(01|02|bi|de|do|t(\-| |o|v)|zz)|mt(50|p1|v )|mwbp|mywa|n10[0-2]|n20[2-3]|n30(0|2)|n50(0|2|5)|n7(0(0|1)|10)|ne((c|m)\-|on|tf|wf|wg|wt)|nok(6|i)|nzph|o2im|op(ti|wv)|oran|owg1|p800|pan(a|d|t)|pdxg|pg(13|\-([1-8]|c))|phil|pire|pl(ay|uc)|pn\-2|po(ck|rt|se)|prox|psio|pt\-g|qa\-a|qc(07|12|21|32|60|\-[2-7]|i\-)|qtek|r380|r600|raks|rim9|ro(ve|zo)|s55\/|sa(ge|ma|mm|ms|ny|va)|sc(01|h\-|oo|p\-)|sdk\/|se(c(\-|0|1)|47|mc|nd|ri)|sgh\-|shar|sie(\-|m)|sk\-0|sl(45|id)|sm(al|ar|b3|it|t5)|so(ft|ny)|sp(01|h\-|v\-|v )|sy(01|mb)|t2(18|50)|t6(00|10|18)|ta(gt|lk)|tcl\-|tdg\-|tel(i|m)|tim\-|t\-mo|to(pl|sh)|ts(70|m\-|m3|m5)|tx\-9|up(\.b|g1|si)|utst|v400|v750|veri|vi(rg|te)|vk(40|5[0-3]|\-v)|vm40|voda|vulc|vx(52|53|60|61|70|80|81|83|85|98)|w3c(\-| )|webc|whit|wi(g |nc|nw)|wmlb|wonu|x700|yas\-|your|zeto|zte\-/i.test(a.substr(0, 4))) check = true })(navigator.userAgent || navigator.vendor || window.opera);
-    return check;
+
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+// Summarises our dataset in HTML
+DN.prototype.DescribeDataset = function (divID, data, maxNumRows) {
+    
+    if (dn.IsDefined(data) && data.length > 0) {
+
+        // First lets try to build the table
+        // Platform,FeedbackType,Title,Description,Email,DateCreated
+        let divWrapper = d3.select("#" + divID);
+        let t = divWrapper.append('table').attr('id', divID + 'DataTable');
+        let tHead = t.append('thead');
+        let tHeadRow = tHead.append('tr');
+
+        // Set the headers
+        // Then iterate through the properties here
+        let propList = Object.keys(data[0]);
+        for (let i = 0; i < propList.length; i++) {
+            let th = tHeadRow.append('th');
+            th.append("div").html(propList[i] + "<br />" + data[0][propList[i]].constructor.name);
+        }
+        
+        // Set the data
+        let tbdy = t.append('tbody');
+
+        for (let i = 0; i < data.length && i < maxNumRows; i++) {
+            let d = data[i];
+            let tr = tbdy.append('tr');
+
+            // Then iterate through the properties here
+            let propList = Object.keys(d);
+            for (let j = 0; j < propList.length; j++) {
+                // Year and month
+                let td = tr.append('td');
+                td.append("div").html(d[propList[j]]);
+            }
+        }
+    }
 };
-//-----------------------------------------------------------------------------------------------------------------------------------------------------
-// Firefox 1.0+
-DN.prototype.IsFirefox = function () {
-    var isFirefox = typeof InstallTrigger !== 'undefined';
-    return isFirefox;
+
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+// Summarises our data in HTML
+DN.prototype.DescribeVariable = function (divID, data, variableName, expectedType) {
+    // Get the data in a standalone array
+    let variableArray = data.map(d => d[variableName]);
+    // Find the unique values
+    let uniqueList = dn.Unique(variableArray);
+    // Get the data type
+    let dataType = data[0][variableName].constructor.name;
+
+    // Start the simple presentation
+    let html = "<div><b>" + variableName + "</b> is a <b>" + dataType + "</b>; ";
+
+    // If this is a date or a number, lets present the max, min and average, otherwise lets present a unique list
+    let min, max, avg = 0;
+    if (expectedType === "Date") {
+        variableArray = data.map(d => Date.parse(d[variableName]));
+
+        max = new Date(d3.max(uniqueList));
+        min = new Date(d3.min(uniqueList));
+        avg = new Date(d3.mean(variableArray));
+
+        html = html + "Min: <i>" + this.GetDateFormatted(min) + "</i>, Average: <i>" + this.GetDateFormatted(avg) + "</i>, Max: <i>" + this.GetDateFormatted(max) + "</i>";
+
+    } else if (dataType === "Number") {
+        max = dn.NumberWithCommas(d3.max(uniqueList));
+        min = dn.NumberWithCommas(d3.min(uniqueList));
+        avg = dn.NumberWithCommas(dn.NumberWithNDP(d3.mean(variableArray), 2));
+        html = html + "Min: <i>" + min + "</i>, Average: <i>" + avg + "</i>, Max: <i>" + max + "</i>";
+
+    } else {
+        html = html + " with the following unique values: <i>" + uniqueList + "</i>";
+    }
+
+    // Close and append this snippet
+    html = html + "</div>";
+    d3.select("#" + divID).html(d3.select("#" + divID).html() + html);
+};
+
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+// Summarises our dataset in HTML
+DN.prototype.DescribeElement = function (divID, data, variableName, colToSum) {
+
+    if (dn.IsDefined(data) && data.length > 0) {
+
+        // Lets create a hash of this data
+        let dataSum = dn.GroupByAndSummarise(data, variableName, colToSum);
+
+        console.log(dataSum);
+                
+        // First lets try to build the table
+        // Platform,FeedbackType,Title,Description,Email,DateCreated
+        let divWrapper = d3.select("#" + divID);
+        // Try to ensure the ID is unique
+        let t = divWrapper.append('table').attr('id', divID + 'DataTable' + variableName);
+        let thead = t.append('thead').append('tr');
+        thead.append("th").append("div").html(variableName);
+        thead.append("th").append("div").html(colToSum);
+
+        // Set the data
+        let tbdy = t.append('tbody');
+
+        // Set the headers
+        // Then iterate through the properties in the hash and append them as rows
+        let propList = Object.keys(dataSum);
+        for (let i = 0; i < propList.length; i++) {
+            let tr = tbdy.append('tr');
+
+            // The prop name === the element name
+            tr.append('td').append("div").html(propList[i]);
+            // The prop value === the count
+            tr.append('td').append("div").html(dataSum[propList[i]]);
+        }
+    }
 };
 
 
+//-----------------------------------------------------------------------------------------------------------------------------------------------------
+// Creates a hash of the given array of objects using the keyVariableName as the key, and the object as the value
+DN.prototype.HashArray = function (array, keyVariableName, appendIndex) {
+    // lets hash the summaryData for optimal speed as we will need to lookup these values for all filtered AND original records
+    let summaryHash = {};
+    if (this.IsDefined(array)) {
+        for (let i = 0; i < array.length; i++) {
+            let v = array[i];
+            if (this.IsDefined(appendIndex) && appendIndex === true) {
+                v.i = i;
+            }
+            summaryHash[v[keyVariableName]] = v;
+        }
+    }
+
+    return summaryHash;
+};
 
 //-----------------------------------------------------------------------------------------------------------------------------------------------------
 DN.prototype.GroupBy = function (data, key) { // `data` is an array of objects, `key` is the key (or property accessor) to group by
@@ -433,6 +553,21 @@ DN.prototype.YearMonth = function () {
 
     return ym;
 };
+
+//-----------------------------------------------------------------------------------------------------------------------------------------------------
+// Converts the given date object to "DD Month YYYY HH:MM:SS"
+DN.prototype.GetDateFormatted = function (date) {
+    let dateStr = "";
+    if (dn.IsDefined(date)) {
+        dateStr = date.getDate() + " "
+            + dn.months[date.getMonth()] + " "
+            + date.getFullYear() + "&nbsp;&nbsp;"
+            + (date.getHours() < 10 ? "0" : "") + date.getHours() + ":"
+            + (date.getMinutes() < 10 ? "0" : "") + date.getMinutes() + ":"
+            + (date.getSeconds() < 10 ? "0" : "") + date.getSeconds();
+    }
+    return dateStr;
+}
 
 //-----------------------------------------------------------------------------------------------------------------------------------------------------
 /*--
@@ -749,6 +884,18 @@ DN.prototype.WidthAndHeight = function () {
     return { docWidth, docHeight };
 };
 
+//-----------------------------------------------------------------------------------------------------------------------------------------------------
+DN.prototype.DropShadowIsCSS = function () {
+
+    let { docWidth, docHeight } = this.WidthAndHeight();
+
+    // Simplified version of Site.js IsMobile - just checks based on the document width rather than the type of device...
+    // No longer need to do the Firefox check; this is no longer an issue and the check using the user agents are now considered old school!
+    // Incoporates also IsFirefox 1.0+, which was only used for the same check
+    // Hmm - maybe we do still need the firefox switch
+    let isMobile = docWidth < 800 || typeof InstallTrigger !== 'undefined';
+    return isMobile;
+};
 
 
 
@@ -793,7 +940,8 @@ function DNChartGroup(originalJSData) {
     this.pivotDimensions = null;
 
     // Aug-19 - The Other values - used to force the display of Other values to the end of the display list, even if the specific element is to be sorted by value
-    this.otherValues = [ "Other" ];
+    // Jan-20 replaced with hashes
+    //this.otherValues = [ "Other" ];
 
     /**
      * A list of dynamically generated data attributes that would need to be recreated each time the dataset is built (or rebuilt in the case of STOCK datasets
@@ -823,7 +971,10 @@ function DNChartGroup(originalJSData) {
     // Nov-19 - Make the dropshadows configurable on the bar, column and pie charts
     this.showDropShadow = true;
     //-- FF bug - Set the appropriate CSS class for the dropshadows ...
-    this.dropShadowCSS = (dn.IsFirefox || dn.IsMobile) ? "DropShadowCSS" : "DropShadowSVG";
+    this.dropShadowCSS =
+        dn.DropShadowIsCSS()
+            //(dn.IsFirefox || dn.IsMobile)
+            ? "DropShadowCSS" : "DropShadowSVG";
 
     // The URL editor functions
     this.urlEditor = null; // new DNURLEditor();
@@ -1023,7 +1174,10 @@ DNChartGroup.prototype.SetDropShadow = function (doShow) {
     this.showDropShadow = doShow;
 
     //-- FF bug - Set the appropriate CSS class for the dropshadows ...
-    this.dropShadowCSS = (dn.IsFirefox || dn.IsMobile) ? "DropShadowCSS" : "DropShadowSVG";
+    this.dropShadowCSS =
+        dn.DropShadowIsCSS()
+        //(dn.IsFirefox || dn.IsMobile) 
+        ? "DropShadowCSS" : "DropShadowSVG";
 
     if (dn.IsDefined(doShow) && doShow === false) {
         this.dropShadowCSS = "DropShadowNone";
@@ -1034,9 +1188,10 @@ DNChartGroup.prototype.SetDropShadow = function (doShow) {
 
 //-----------------------------------------------------------------------------------------------------------------------------------------------------
 // The Other value - used to force the display of Other values to the end of the display list, even if the specific element is to be sorted by value
-DNChartGroup.prototype.SetOtherValues = function (otherValueList) {
-    this.otherValues = otherValueList;
-};
+// Replaced with hashes
+//DNChartGroup.prototype.SetOtherValues = function (otherValueList) {
+//    this.otherValues = otherValueList;
+//};
 
 //-----------------------------------------------------------------------------------------------------------------------------------------------------
 // The dynamically generated data
@@ -1399,33 +1554,41 @@ DNChartGroup.prototype.DynamicallyGenerateData = function () {
             // Therefore, it's essential that the data is filtered before this.
             let summaryData = this.GetInfo2DFlex(dataAtt.SourceColumnID, null, this.filteredJSData, true, dataAtt.MaxNumValues, dataAtt.CountColumnID);
 
+            // lets hash the summaryData for optimal speed as we will need to lookup these values for all filtered AND original records
+            let summaryDataHash = dn.HashArray(summaryData, "ID"); // { };
+            //for (let j = 0; j < summaryData.length; j++) {
+            //    let v = summaryData[j];
+            //    summaryDataHash[v.ID] = v;
+            //}
+
             //--4-- iterate through the filtered data and set the new column, using the otherID in the data attribute to fill in the other data.
             for (let j = 0; j < this.filteredJSData.length; j++) {
-                let sourceObj = this.filteredJSData[j];
+                let v = this.filteredJSData[j];
 
                 // Start with the other value
                 let val = dataAtt.OtherID;
-                // Try to find one of the summary values
-                let obj = dn.GetObjInList(summaryData, "ID", sourceObj[dataAtt.SourceColumnID]);
-                if (dn.IsDefined(obj) && dn.IsDefined(obj.ID)) {
+                // Try to find one of the summary values and if so lets set the ID
+                let obj = summaryDataHash[ v[dataAtt.SourceColumnID]];
+                if (dn.IsDefined(obj)) {
                     val = obj.ID;
                 }
 
-                this.filteredJSData[j][dataAtt.TargetColumnID] = val;
+                v[dataAtt.TargetColumnID] = val;
             }
 
             //--5-- iterate through the original data and set the new column, using the otherID in the data attribute to fill in the other data.
             for (let j = 0; j < this.origJSData.length; j++) {
-                let sourceObj = this.origJSData[j];
+                let v = this.origJSData[j];
 
                 // Start with the other value
                 let val = dataAtt.OtherID;
-                // Try to find one of the summary values
-                let obj = dn.GetObjInList(summaryData, "ID", sourceObj[dataAtt.SourceColumnID]);
-                if (dn.IsDefined(obj) && dn.IsDefined(obj.ID)) {
+                // Try to find one of the summary values and if so lets set the ID
+                let obj = summaryDataHash[ v[dataAtt.SourceColumnID]];
+                if (dn.IsDefined(obj)) {
                     val = obj.ID;
                 }
-                this.origJSData[j][dataAtt.TargetColumnID] = val;
+
+                v[dataAtt.TargetColumnID] = val;
             }
 
         }
@@ -1568,7 +1731,18 @@ DNChartGroup.prototype.GetInfo2DFlex = function (colToCount1, colToCount2, dataC
 
     let summaryArray = [];
     let summaryArrayOther = [];
-    let otherValues = this.otherValues;
+
+    // Jan-20 - dynamically generate a hash of the other values
+    let otherValuesHash = dn.HashArray(this.dynamicallyGeneratedDataAttributeList, "OtherID"); // {};
+    //if (dn.IsDefined(this.dynamicallyGeneratedDataAttributeList)) {
+    //    for (let i = 0; i < this.dynamicallyGeneratedDataAttributeList.length; i++) {
+    //        let v = this.dynamicallyGeneratedDataAttributeList[i];
+    //        //otherValuesHash[v.TargetColumnID] = v.OtherID;
+    //        otherValuesHash[v.OtherID] = v.OtherID;
+    //    }
+    //}
+
+    //let otherValues = this.otherValues;
 
     //--1-- Do the filter using either one or two dimensions...
     if (! dn.IsDefined(colToCount2) || colToCount2 === "") {
@@ -1601,7 +1775,8 @@ DNChartGroup.prototype.GetInfo2DFlex = function (colToCount1, colToCount2, dataC
             }
 
             // Creates { "ID1":211,"ID2":302,"Count":23232 }, where ID1 is the source and ID2 is the target
-            if (dn.IsDefined(otherValues) && otherValues.length > 0 && dn.IsDefined(dn.GetObjInList( otherValues, null, v.key))) {
+            //if (dn.IsDefined(otherValues) && otherValues.length > 0 && dn.IsDefined(dn.GetObjInList( otherValues, null, v.key))) {
+            if (dn.IsDefined(otherValuesHash[v.key])) {
                 summaryArrayOther.push({
                     ID: v.key,
                     Count: v.value
@@ -1651,8 +1826,9 @@ DNChartGroup.prototype.GetInfo2DFlex = function (colToCount1, colToCount2, dataC
                 }
 
                 // Creates { "ID1":211,"ID2":302,"Count":23232 }, where ID1 is the source and ID2 is the target
-                if (dn.IsDefined(otherValues) && otherValues.length > 0 &&
-                    (dn.IsDefined(dn.GetObjInList(otherValues, null, v1.key)) || dn.IsDefined(dn.GetObjInList(otherValues, null, v2.key)))) {
+//                if (dn.IsDefined(otherValues) && otherValues.length > 0 &&
+//                    (dn.IsDefined(dn.GetObjInList(otherValues, null, v1.key)) || dn.IsDefined(dn.GetObjInList(otherValues, null, v2.key)))) {
+                if (dn.IsDefined(otherValuesHash[v1.key]) || dn.IsDefined(otherValuesHash[v2.key])) {
 
                     summaryArrayOther.push({
                         ID1: v1.key,
@@ -1792,8 +1968,10 @@ DNChartGroup.prototype.SankifyData = function (chartID, useFilteredData) {
         return obj;
     }
     // So lets define locally what we need
-    let listSource = c.Names1;
-    let listTarget = c.Names2;
+    //let listSource = c.Names1;
+//    let listTarget = c.Names2;
+    let listSource = c.Names1Hash;
+    let listTarget = c.Names2Hash;
     let colourRampSource = c.ColourRamp1;
     let colourRampTarget = c.ColourRamp2;
     let sourceChartID = c.SourceChartID;
@@ -1912,7 +2090,8 @@ DNChartGroup.prototype.SankifyData = function (chartID, useFilteredData) {
             obj.nodes.push({
                 ID: keyNum,
                 ChartID: sourceChartID,
-                Name: dn.GetTitleFromObj(keyNum, listSource),
+//                Name: dn.GetTitleFromObj(keyNum, listSource),
+                Name: listSource[keyNum].Title,
                 Colour: colourRampSource[i],
                 CountFiltered: filteredCount,
                 IsFiltering: isFiltering
@@ -1930,7 +2109,8 @@ DNChartGroup.prototype.SankifyData = function (chartID, useFilteredData) {
             obj.nodes.push({
                 ID: keyNum,
                 ChartID: targetChartID,
-                Name: dn.GetTitleFromObj(keyNum, listTarget),
+                //Name: dn.GetTitleFromObj(keyNum, listTarget),
+                Name: listTarget[keyNum].Title,
                 Colour: colourRampTarget[i],
                 CountFiltered: filteredCount,
                 IsFiltering: isFiltering
@@ -2294,7 +2474,7 @@ DNChartGroup.prototype.TotalCount = function (summaryData, fieldToSum) {
 
 //---------------------------------------------------------------------------------------------------------------------
 DNChartGroup.prototype.ResetMap = function () {
-//    let cg =
+
     if (dn.IsDefined(this.meep)) {
         this.meep.setView(dn.defaultMapCentroid, dn.defaultMapZoomLevel);
     }
@@ -2374,6 +2554,9 @@ function DNChart() {
     this.Names1 = [];
     this.Names2 = []; // Sankeys only
 
+    // Generate hashes of the names for quick lookup of the titles...
+    this.Names1Hash = {};
+    this.Names2Hash = {};
 
     // The chart title
     this.ChartTitle = "";
@@ -2427,6 +2610,11 @@ DNChart.prototype.GenericChart = function (chartID, chartType, divID, chartGroup
     chartGroup.AddChartToGroup(this);
 
     this.DoDraw = doDraw;
+
+    // Generate hashes of the names for quick lookup of the titles... We only want to generate the indexes for the pie charts
+    this.Names1Hash = dn.HashArray(namesList, "ID", this.ChartType === 200);
+    this.Names2Hash = dn.HashArray(this.Names2, "ID");
+
 
     // TO DO - this would be the place where the summary data would need to be pulled out from the call backs ... AJAX ME!!!
 
@@ -2801,8 +2989,9 @@ DNChart.prototype.DrawBarChart = function (chartData) {
     maxHeight = (!dn.IsDefined(maxHeight) || maxHeight === 0) ? 300 : maxHeight;
     yAxisCrossing = (!dn.IsDefined(yAxisCrossing) || yAxisCrossing === 0) ? dn.defaultYAxisCrossing : yAxisCrossing;
 
-    // Set the titles using the lookup lists
-    this.ApplyTitleFromLookupList(chartData, lookupList, maxTxtLength, false);
+    // Set the titles using the built in hash lists
+    //this.ApplyTitleFromLookupList(chartData, lookupList, maxTxtLength, false);
+    this.ApplyTitleFromLookupList(chartData, maxTxtLength, false);
 
     let margin = dn.defaultBarChartMargins;
     let width = maxWidth;
@@ -3009,8 +3198,9 @@ DNChart.prototype.DrawColumnChart = function (chartData) {
     maxHeight = (!dn.IsDefined(maxHeight) || maxHeight === 0) ? 300 : maxHeight;
     xAxisCrossing = (!dn.IsDefined(xAxisCrossing) || xAxisCrossing === 0) ? dn.defaultYAxisCrossing : xAxisCrossing;
 
-    //-----2----- Set the titles using the lookup lists
-    this.ApplyTitleFromLookupList(chartData, lookupList, maxTxtLength, false);
+    //-----2----- Set the titles using the built in hash lists
+    //this.ApplyTitleFromLookupList(chartData, lookupList, maxTxtLength, false);
+    this.ApplyTitleFromLookupList(chartData, maxTxtLength, false);
 
     //-----3----- Append the div wrapper to the given div and add the chart title.
     let chartWrapper = this.DrawChartWrapper(divID, chartID, null, xLoc, yLoc, maxWidth, maxHeight, null, null);
@@ -3470,10 +3660,11 @@ DNChart.prototype.DrawPieChart = function (chartData) {
 
     // To do - this could be optimised better ....
     // Set the titles using the lookup lists
-    let indexesInDataList = this.ApplyTitleFromLookupList(chartData, lookupList, maxTxtLength, true);
+    let indexesInDataList = this.ApplyTitleFromLookupList(chartData, maxTxtLength, true);
+//        this.ApplyTitleFromLookupList(chartData, lookupList, maxTxtLength, true);
 
 
-
+    // This ensures that the same colour is used consistently with the same element of the chart data variable (e.g. Refugees are always orange)
     if (dn.IsDefined(lookupList)) {
         if (!dn.IsDefined(useSimpleColours) || useSimpleColours === false) {
             customColourRamp = dn.StrimColourRamp2(customColourRamp, indexesInDataList);
@@ -3852,7 +4043,8 @@ DNChart.prototype.DrawMap = function (chartData, chartDataSubGeographic) {
     let c = this;
 
     let centroid = this.Centroid;
-    let zoomLevel = this.zoomLevel;
+    let zoomLevel = this.ZoomLevel;
+
 
     //-----0----- Remove any existing SVG with the same ID as this chart - this has become an issue when managing the resizing...
     this.RemoveExistingSVG();
@@ -4062,6 +4254,9 @@ DNChart.prototype.UpdateMap = function (dataFiltered) {
     // get the total count
     let totalCount = cg.TotalCount(dataFiltered);
 
+    // Lets hash the filtered data so that the lookup in the loop below runs faster
+    let dataFilteredHash = dn.HashArray(dataFiltered, "ID");
+    
     //--1-- Clear all the existing labels - we do this in a timeout so that the animation looks cool...
     setTimeout(function () {
         cg.mapLabelLayerGroup.clearLayers();
@@ -4072,7 +4267,8 @@ DNChart.prototype.UpdateMap = function (dataFiltered) {
         let v1 = this.ChartData[i];
 
         //--2a-- Get the related object in the filtered data (which may not exist if there is no data for it) and calculate the count
-        let v2 = dn.GetObjInList( dataFiltered, "ID", v1.ID);
+        //let v2 = dn.GetObjInList( dataFiltered, "ID", v1.ID);
+        let v2 = dataFilteredHash[ v1.ID ];
 
         let tempCount = 0;
         if (dn.IsDefined(v2)) {
@@ -4206,7 +4402,7 @@ DNChart.prototype.CalculateBubbleRadius = function (areaCoefficient, dataVal) {
 DNChart.prototype.DrawBubble = function (chartID, objID, centroid, cssClass, radius, hoverTextTitle, hoverTextValue) {
 
     let cg = this.ChartGroup;
-
+        
     //--1-- Lets get stuck in with producing the bubble
     let bubble = L.circleMarker(centroid, {
         textTitle: hoverTextTitle, // the first line of text
@@ -4434,9 +4630,10 @@ DNChart.prototype.AddSVGDropShadow = function (svgObj) {
 
 
 //-----------------------------------------------------------------------------------------------------------------------------------------------------
-// Pulls the title accross from the lookup list to the summary data (lists of objects with ID and Count attributes) and returns the data with the Title.
-DNChart.prototype.ApplyTitleFromLookupList = function (chartData, lookupList, maxTxtLength, doCheckIndexes) {
-
+// Pulls the title across from the lookup list to the summary data (lists of objects with ID and Count attributes) and returns the data with the Title.
+// Jan-20 updated to use the lookup hashes
+DNChart.prototype.ApplyTitleFromLookupList = function (chartData, maxTxtLength, doCheckIndexes) { // lookupList
+    
     //--00-- This list of indexes is used for the pie charts to identify the values in the colour ramp to keep and the ones to ignore.
     let indexesInDataList = [];
 
@@ -4448,18 +4645,24 @@ DNChart.prototype.ApplyTitleFromLookupList = function (chartData, lookupList, ma
 
             let tempTitle = v1.ID;
 
-            if (dn.IsDefined(lookupList)) {
-                //--02-- Get the current index (note this gets the index, not the object)
-                let currentIndex = lookupList.findIndex(obj => obj.ID === v1.ID);
-                //--03-- If we found it get the title and add the index to the list if it does not already exist (we will make this list unique at the end)
-                if (currentIndex >= 0) {
-                    tempTitle = lookupList[currentIndex].Title;
+//            if (dn.IsDefined(lookupList)) {
+            //--02-- use the hash to get the look up object with the title
+            //Get the current index(note this gets the index, not the object)
+            //let currentIndex = lookupList.findIndex(obj => obj.ID === v1.ID);
+            let obj = this.Names1Hash[ v1.ID ];
 
-                    if (dn.IsDefined(doCheckIndexes) && doCheckIndexes === true) {
-                        indexesInDataList.push(currentIndex);
-                    }
+                //--03-- If we found it get the title and add the index to the list if it does not already exist (we will make this list unique at the end)
+            //if (currentIndex >= 0) {
+            if (dn.IsDefined(obj)) {
+                //tempTitle = lookupList[currentIndex].Title;
+                tempTitle = obj.Title;
+
+                if (dn.IsDefined(doCheckIndexes) && doCheckIndexes === true) {
+//                    indexesInDataList.push(currentIndex);
+                    indexesInDataList.push(obj.i);
                 }
             }
+//            }
 
             //--04-- Abbreviate it if needed and set the title.
             if (!dn.IsDefined(tempTitle)) {
