@@ -1166,6 +1166,15 @@ DNChartGroup.prototype.ObjectsToFilterContainDynamicDimensions = function () {
     return false;
 };
 
+//-----------------------------------------------------------------------------------------------------------------------------------------------------
+// Get the total number of filters currently applied
+DNChartGroup.prototype.FilterCount = function () {
+    let paramCount = 0;
+    for (let i = 0; i < this.objsToFilter.length; i++) {
+        paramCount += this.objsToFilter[i].Objs.length;
+    }
+    return paramCount;
+};
 
 //-----------------------------------------------------------------------------------------------------------------------------------------------------
 // Sets the dropshadow css class to apply to the chart elements
@@ -3072,7 +3081,7 @@ DNChart.prototype.DrawBarChart = function (chartData) {
             // Jan-20 - previously the filtered count was approximated by comparing the heights of the filtered and the full bars
             // This obviously does not work when the bars are representing large ranges of numbers e.g from 0 to 1m.
             // Get the data value for the selected data from the data attribute of the _2 filtered bars or the _5 ghosting bars if this is a stock visualisation
-            let currentCount = d3.select("#" + chartID + "_" + v.ID + "_2").attr("data-a");
+            let currentCount = +d3.select("#" + chartID + "_" + v.ID + "_2").attr("data-a");
 
             // 18-Nov-2015 - improve the hover over text by showing the selected numbers (and the totals)
             //let w1 = d3.select("#" + chartID + "_" + v.ID + "_1").attr("width");
@@ -3327,14 +3336,23 @@ DNChart.prototype.DrawColumnChart = function (chartData) {
 
             // Jan-20 - previously the filtered count was approximated by comparing the heights of the filtered and the full bars
             // This obviously does not work when the bars are representing large ranges of numbers e.g from 0 to 1m.
-            // Get the data value for the selected data from the data attribute of the _2 filtered bars or the _5 ghosting bars if this is a stock visualisation
+            // Get the data value for the selected data from the data attribute of the _2 filtered bars or the _5 ghosting bars if this is a stock visualisation and filtering is being conducted
+            // We need to do this switch as the ghosted bars are a special filter...
             let objSubID = 2;
 
-            if (isStockVisualisation) {
+            // Check if filtering is currently being conducted AND this is a stock visualisation and use the ghosted counts if so.
+            let paramCount = cg.FilterCount();
+            let isFiltering = (paramCount > 0 && isStockVisualisation === false) || paramCount > 1;
+            if (isStockVisualisation && isFiltering) {
                 objSubID = 5;
             }
 
-            let currentCount = d3.select("#" + chartID + "_" + v.ID + "_" + objSubID).attr("data-a");
+            let currentCount = +d3.select("#" + chartID + "_" + v.ID + "_" + objSubID).attr("data-a");
+
+            // Then if we are not filtering and this is stock visualisation, lets display just the total
+            if (isStockVisualisation && isFiltering === false) {
+                currentCount = v.Count;
+            }
 
             showHoverOver(chartID, chartType, [coordinates[0] + (i * barWidth), coordinates[1]],
                 focus, v.Title, currentCount, v.Count);
@@ -4757,8 +4775,8 @@ DNChart.prototype.UpdateBarChart = function (chartID, chartFullData, chartFilter
 
             //--2b-- make a pretty transition to the new value ...
             d3.select("#" + tempObjIDtoMod)
-                .transition().duration(this.GetTransitionDuration())  // originally 750
                 .attr("data-a", newWidth) // Added Jan-20
+                .transition().duration(this.GetTransitionDuration())  // originally 750
                 .attr("width", x(newWidth));
 
             //--2c-- Update the text values to be the filtered numbers
@@ -4810,6 +4828,7 @@ DNChart.prototype.UpdateColumnChart = function (chartID, chartFullData, chartFil
             let newHeight = 0;
             let newY = y(0);
             let filteredCount = 0; //v1.Count;
+            //let filteredCount = v1.Count;
 
             //--2a-- Now find the value for this object in the filtered data and get the new value
             // Refectored to avoid the inner loop
@@ -4823,7 +4842,7 @@ DNChart.prototype.UpdateColumnChart = function (chartID, chartFullData, chartFil
 
             //--2b-- make a pretty transition to the new value ...
             d3.select("#" + tempObjIDtoMod)
-                .attr("data-a", filteredCount) // Added Jan-20 to improve the hoverover numbers... we want to ensure that this gets actioned immediately
+                .attr("data-a", filteredCount) // Added Jan-20 to improve the hover over numbers... we want to ensure that this gets actioned immediately
                 .transition().duration(this.GetTransitionDuration())  // originally 750
                 .attr("y", newY)
                 .attr("height", newHeight);
@@ -5023,6 +5042,7 @@ DNChart.prototype.DoColumnChartGhosting = function (chartID, chartFullData, char
             let newHeight = 0;
             let newY = y(0);
             let filteredCount = 0; // v1.Count;
+            //let filteredCount = v1.Count;
 
             //--2a-- Now find the value for this object in the filtered data and get the new value
             // Jan-20 - refactor to avoid the inner loop...
