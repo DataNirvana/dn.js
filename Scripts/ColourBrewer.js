@@ -348,8 +348,11 @@ var colourbrewer = { YlGn: {
     },
     UNHCRRed: {
         1: [
-            "#750A18", "#7B1523", "#82212E", "#882D39", "#8F3844", "#95444F", "#9C505A", "#A35B65", "#A96770", "#B0737B", "#B67E86",
-            "#BD8A91", "#C3969C", "#CAA1A7", "#D1ADB2", "#D7B9BD", "#DEC4C8", "#E4D0D3", "#EBDCDE", "#F1E7E9", "#F8F3F4", "#FFFFFF"
+            // Jan-20 - Updated to start at UNHCR Red
+            "#ef4a60", "#f05468", "#f15d71", "#f26779", "#f27081", "#f37a8a", "#f48392", "#f58d9b", "#f696a3", "#f7a0ab",
+            "#f7a9b4", "#f8b3bc", "#f9bcc4", "#fac6cd", "#fbcfd5", "#fcd9de", "#fce2e6", "#fdecee", "#fef5f7", "#ffffff"
+//            "#750A18", "#7B1523", "#82212E", "#882D39", "#8F3844", "#95444F", "#9C505A", "#A35B65", "#A96770", "#B0737B", "#B67E86",
+//            "#BD8A91", "#C3969C", "#CAA1A7", "#D1ADB2", "#D7B9BD", "#DEC4C8", "#E4D0D3", "#EBDCDE", "#F1E7E9", "#F8F3F4", "#FFFFFF"
         ]
     },
     UNHCRGreen: {
