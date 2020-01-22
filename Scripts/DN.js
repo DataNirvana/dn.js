@@ -736,13 +736,16 @@ DN.prototype.CalculatePercentageDifference = function (previousPeriod, previousV
 */
 DN.prototype.PreFilterData = function (objListToFilter, data, isAndOperation) {
 
+    // Get a handle on the class as within the filter or foreach loop, the context of this changes...
+    let dnObj = this;
+
     // For the or to work, we need at least two types of object
     if (isAndOperation === false) {
         let numObjs = 0;
 
         for (let i = 0; i < objListToFilter.length; i++) {
             let v = objListToFilter[i];
-            if (this.IsDefined(v.Objs) && v.Objs.length > 0) {
+            if (dnObj.IsDefined(v.Objs) && v.Objs.length > 0) {
                 numObjs++;
             }
         }
@@ -767,14 +770,14 @@ DN.prototype.PreFilterData = function (objListToFilter, data, isAndOperation) {
 
             if (isAndOperation === true) {
                 // using the array.prototype.find to find a value in an array ...
-                foundDD = foundDD && (v1.Objs.length === 0 || this.IsDefined(dn.GetObjInList(v1.Objs, null, tempVal)));
+                foundDD = foundDD && (v1.Objs.length === 0 || dnObj.IsDefined(dn.GetObjInList(v1.Objs, null, tempVal)));
             } else {
 
                 // OR operation...
                 if (foundDD === true) {
                     break;
                 } else {
-                    foundDD = (v1.Objs.length === 0 || this.IsDefined(dn.GetObjInList(v1.Objs, null, tempVal)));
+                    foundDD = (v1.Objs.length === 0 || dnObj.IsDefined(dn.GetObjInList(v1.Objs, null, tempVal)));
                 }
 
             }
