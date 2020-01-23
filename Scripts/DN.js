@@ -4224,35 +4224,40 @@ DNChart.prototype.DrawMap = function (chartData, chartDataSubGeographic) {
         }
 
 
-        //--6c-- Create the static grey bubble that will always show the max scale ...
+        //--6c-- Check that the centroid (Latitude and Longitude) are valid
+        if (!dn.IsDefined(v1.Latitude) || !dn.IsDefined(v1.Longitude)) {
+            console.log("dn.js - No coordinates provided for element " + v1.ID + "(" + v1.Title + ") in chart " + chartID);
+        } else {
+            //--6d-- Create the static grey bubble that will always show the max scale ...
 
-        let chartID1 = chartID + "_" + v1.ID + "_1";
-        cg.mapMarkerList[chartID1] = c.DrawBubble(
-            chartID,
-            v1.ID,
-            // Remember tha the Centroid is latitude, longitude ...
-            [v1.Latitude, v1.Longitude],
-            "MapMarker1" + cssNoTransition,
-            radius,
-            v1.Title,
-            valueStr
-        );
-        cg.mapMarkerList[chartID1].addTo(meep);
+            let chartID1 = chartID + "_" + v1.ID + "_1";
+            cg.mapMarkerList[chartID1] = c.DrawBubble(
+                chartID,
+                v1.ID,
+                // Remember tha the Centroid is latitude, longitude ...
+                [v1.Latitude, v1.Longitude],
+                "MapMarker1" + cssNoTransition,
+                radius,
+                v1.Title,
+                valueStr
+            );
+            cg.mapMarkerList[chartID1].addTo(meep);
 
-        // And the dyamic marker bubble that will change size if filtered
-        let chartID2 = chartID + "_" + v1.ID + "_2";
-        cg.mapMarkerList[chartID2] = c.DrawBubble(
-            chartID,
-            v1.ID,
-            [v1.Latitude, v1.Longitude],
-            "MapMarker2" + cssNoTransition,
-            radius,
-            v1.Title,
-            valueStr
-        );
-        cg.mapMarkerList[chartID2].addTo(meep);
+            //--6e-- And the dyamic marker bubble that will change size if filtered
+            let chartID2 = chartID + "_" + v1.ID + "_2";
+            cg.mapMarkerList[chartID2] = c.DrawBubble(
+                chartID,
+                v1.ID,
+                [v1.Latitude, v1.Longitude],
+                "MapMarker2" + cssNoTransition,
+                radius,
+                v1.Title,
+                valueStr
+            );
+            cg.mapMarkerList[chartID2].addTo(meep);
+        }
 
-        //--6d-- Add a divIcon containing the label
+        //--6f-- Add a divIcon containing the label
         // Sep-19 - But only if the current zoom level is more detailed than the default minimum for labels (this is to avoid clutter)
         if (zoomLevel >= dn.defaultMapLabelMinZoomLevel) {
             c.DrawMapLabel([v1.Latitude, v1.Longitude], dn.defaultBubbleLabelOffsetX, dn.defaultBubbleLabelOffsetY, "MapLabel", "MapLabelText", v1.Title, valueStr)
@@ -4287,58 +4292,64 @@ DNChart.prototype.UpdateMap = function (dataFiltered) {
     for (let i = 0; i < this.ChartData.length; i++) {
         let v1 = this.ChartData[i];
 
-        //--2a-- Get the related object in the filtered data (which may not exist if there is no data for it) and calculate the count
-        //let v2 = dn.GetObjInList( dataFiltered, "ID", v1.ID);
-        let v2 = dataFilteredHash[ v1.ID ];
-
-        let tempCount = 0;
-        if (dn.IsDefined(v2)) {
-            tempCount = v2.Count;
-        }
-
-        //--2b-- Get our new radius of the original data and our current filtered data
-        let radius1 = this.CalculateBubbleRadius(coeff, v1.Count);
-        let radius2 = this.CalculateBubbleRadius(coeff, tempCount);
-
-        //--2c-- Get the percentage and the description text - two cases:
-        // Case 1 - this map area (country etc) has not been sub-filtered (e.g by slicing by demographics), so the percentage should be the % of the current total filtered count
-        // Case 2 - otherwise, we get the "local percentage" - i.e. the % of this object that is subfiltered ...
-        let perc = 0;
-        let str = "";
-        if (v1.Count === tempCount) {
-            perc = dn.GetPercent(tempCount, totalCount, 0, true);
-            str = dn.NumberWithCommas(tempCount) + " (" + perc + "%)";
+        //--2a-- Check that the latitude and longitude are defined - we needn't continue if these are not defined as there will be no map object...
+        if (!dn.IsDefined(v1.Latitude) || !dn.IsDefined(v1.Longitude)) {
+            // No need to show this as we have shown it already in DrawMap
+            //console.log("dn.js - UpdateMap - No coordinates provided for element " + v1.ID + "(" + v1.Title + ") in chart " + this.ChartID);
         } else {
-            perc = dn.GetPercent(tempCount, v1.Count, 0, true);
-            str = dn.NumberWithCommas(tempCount) + " of " + dn.NumberWithCommas(v1.Count) + " (" + perc + "%)";
-        }
 
-        //--2d-- Apply this new description text to the options value that is used to generate the hover over
+            //--2b-- Get the related object in the filtered data (which may not exist if there is no data for it) and calculate the count
+            //let v2 = dn.GetObjInList( dataFiltered, "ID", v1.ID);
+            let v2 = dataFilteredHash[v1.ID];
 
-        let mm1 = cg.mapMarkerList[this.ChartID + "_" + v1.ID + "_1"];
-        let mm2 = cg.mapMarkerList[this.ChartID + "_" + v1.ID + "_2"];
-        // Set the text, and apply the new radii for the original grey total (_1) and the filtered data (_2); and redraw the filtered data
-        if (dn.IsDefined(mm1)) {
-            mm1.options.textValue = str;
-            mm1.setRadius(radius1);
-        }
-        if (dn.IsDefined(mm2)) {
-            mm2.options.textValue = str;
-            mm2.setRadius(radius2);
-            mm2.redraw();
-        }
-        // Flag a warning if mm1 or mm2 were not defined
-        if (!dn.IsDefined(mm1) || !dn.IsDefined(mm2)) {
-            console.warn("No map markers for ID:", v1.ID, v1.Title);
-        }
+            let tempCount = 0;
+            if (dn.IsDefined(v2)) {
+                tempCount = v2.Count;
+            }
 
-        //--2e-- Lastly add our label to appear above the circles, again in a timeout; but only if the user is sufficiently zoomed in
-        // Sep-19 - updated to include a Min Zoom level to reduce the density of labels displayed
-        if (zl >= dn.defaultMapLabelMinZoomLevel) {
-            setTimeout(function () {
-                drawLabel([v1.Latitude, v1.Longitude], dn.defaultBubbleLabelOffsetX, dn.defaultBubbleLabelOffsetY, "MapLabel", "MapLabelText", v1.Title, str)
-                    .addTo(cg.mapLabelLayerGroup);
-            }, this.GetTransitionDuration(true));
+            //--2c-- Get our new radius of the original data and our current filtered data
+            let radius1 = this.CalculateBubbleRadius(coeff, v1.Count);
+            let radius2 = this.CalculateBubbleRadius(coeff, tempCount);
+
+            //--2d-- Get the percentage and the description text - two cases:
+            // Case 1 - this map area (country etc) has not been sub-filtered (e.g by slicing by demographics), so the percentage should be the % of the current total filtered count
+            // Case 2 - otherwise, we get the "local percentage" - i.e. the % of this object that is subfiltered ...
+            let perc = 0;
+            let str = "";
+            if (v1.Count === tempCount) {
+                perc = dn.GetPercent(tempCount, totalCount, 0, true);
+                str = dn.NumberWithCommas(tempCount) + " (" + perc + "%)";
+            } else {
+                perc = dn.GetPercent(tempCount, v1.Count, 0, true);
+                str = dn.NumberWithCommas(tempCount) + " of " + dn.NumberWithCommas(v1.Count) + " (" + perc + "%)";
+            }
+
+            //--2e-- Apply this new description text to the options value that is used to generate the hover over
+            let mm1 = cg.mapMarkerList[this.ChartID + "_" + v1.ID + "_1"];
+            let mm2 = cg.mapMarkerList[this.ChartID + "_" + v1.ID + "_2"];
+            // Set the text, and apply the new radii for the original grey total (_1) and the filtered data (_2); and redraw the filtered data
+            if (dn.IsDefined(mm1)) {
+                mm1.options.textValue = str;
+                mm1.setRadius(radius1);
+            }
+            if (dn.IsDefined(mm2)) {
+                mm2.options.textValue = str;
+                mm2.setRadius(radius2);
+                mm2.redraw();
+            }
+            // Flag a warning if mm1 or mm2 were not defined
+            if (!dn.IsDefined(mm1) || !dn.IsDefined(mm2)) {
+                console.warn("No map markers for ID:", v1.ID, v1.Title);
+            }
+
+            //--2f-- Lastly add our label to appear above the circles, again in a timeout; but only if the user is sufficiently zoomed in
+            // Sep-19 - updated to include a Min Zoom level to reduce the density of labels displayed
+            if (zl >= dn.defaultMapLabelMinZoomLevel) {
+                setTimeout(function () {
+                    drawLabel([v1.Latitude, v1.Longitude], dn.defaultBubbleLabelOffsetX, dn.defaultBubbleLabelOffsetY, "MapLabel", "MapLabelText", v1.Title, str)
+                        .addTo(cg.mapLabelLayerGroup);
+                }, this.GetTransitionDuration(true));
+            }
         }
     }
 };
@@ -4710,22 +4721,22 @@ DNChart.prototype.JoinDataWithMapLookupList = function (chartData, lookupList, m
 
     if (dn.IsDefined(chartData)) {
 
+        // Use hashes for linking the lookup data with the chart data
+        let lookupListHash = dn.HashArray(lookupList, "ID", false);
+
         // Set the titles for each chart data object using the lookup lists
         for (let i = 0; i < chartData.length; i++) {
             let v1 = chartData[i];
 
             let tempTitle = v1.ID;
 
-            if (dn.IsDefined(lookupList)) {
+            // use array.prototype.find - this should be more efficient than an inner for loop.
+            let v2 = lookupListHash[ v1.ID ];
 
-                // use array.prototype.find - this should be more efficient than an inner for loop.
-                let v2 = dn.GetObjInList( lookupList, "ID", v1.ID);
-
-                if (dn.IsDefined(v2)) {
-                    tempTitle = v2.Title;
-                    v1.Latitude = v2.Latitude;
-                    v1.Longitude = v2.Longitude;
-                }
+            if (dn.IsDefined(v2)) {
+                tempTitle = v2.Title;
+                v1.Latitude = v2.Latitude;
+                v1.Longitude = v2.Longitude;
             }
 
             // Abbreviate it if needed ...
