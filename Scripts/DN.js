@@ -4148,8 +4148,11 @@ DNChart.prototype.DrawMap = function (chartData, chartDataSubGeographic) {
 //        meep = L.map(chartID + "Map").setView(centroid, zoomLevel);
         meep = L.map(chartID + "Map", {scrollWheelZoom: dn.defaultMapScrollWheelZoomable}).setView(centroid, zoomLevel);
 
-
-
+		// If the map zoom wheel scrollable is set to false, then lets enable the zooming on click
+		if (dn.defaultMapScrollWheelZoomable === false) {
+			meep.on('focus', function() { meep.scrollWheelZoom.enable(); });
+			meep.on('blur', function() { meep.scrollWheelZoom.disable(); });
+		}
 
         // Set the attribution prefix
         meep.attributionControl.setPrefix('<a href="http://leafletjs.com" title="Produced using Leaflet maps" style="font-family:' + cg.defaultFont + ';">Leaflet.js</a> ');
