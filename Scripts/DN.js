@@ -8,7 +8,7 @@
     Can also link to bubble charts produced using Leaflet.js
 
     #########################################################################
-    Version:  January 2020 - v2.63
+    Version:  February 2021 - v2.8
     #########################################################################
     Copyright © 2020 Data Nirvana Limited
 
@@ -93,6 +93,8 @@ function DN() {
     this.defaultBubbleLabelOffsetX = 55;
     // The offset for the bubble labels (Y) in pixels
     this.defaultBubbleLabelOffsetY = 18;
+
+	this.defaultMapScrollWheelZoomable = true;
 
     // e.g. https://api.mapbox.com/styles/v1...
     this.mapTileURL = "";
@@ -4142,8 +4144,12 @@ DNChart.prototype.DrawMap = function (chartData, chartDataSubGeographic) {
 
     } else {
 
-        // set the default view
-        meep = L.map(chartID + "Map").setView(centroid, zoomLevel);
+        // set the default view (Feb 2021 - with the option of disabling the scrollWheelZoom)
+//        meep = L.map(chartID + "Map").setView(centroid, zoomLevel);
+        meep = L.map(chartID + "Map", {scrollWheelZoom: dn.defaultMapScrollWheelZoomable}).setView(centroid, zoomLevel);
+
+
+
 
         // Set the attribution prefix
         meep.attributionControl.setPrefix('<a href="http://leafletjs.com" title="Produced using Leaflet maps" style="font-family:' + cg.defaultFont + ';">Leaflet.js</a> ');
