@@ -48,6 +48,7 @@ function DN() {
     //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     // Bar chart defaults
     this.defaultBarChartMargins = { top: 10, right: 45, bottom: 0, left: 5 };
+    this.defaultBarChartMaxBarHeight = 40;
     this.defaultYAxisCrossing = 190;
     // Line graph defaults
     this.defaultLineGraphMargins = { top: 10, right: 10, bottom: 80, left: 60 };
@@ -3027,7 +3028,7 @@ DNChart.prototype.DrawBarChart = function (chartData) {
 
     // Now we have to assume that the data vis people are not stupid and dont try to add in too many bars into the space
     // but we do want to ensure a max so that there is general consistency between the views.
-    let maxBarHeight = 40;
+    let maxBarHeight = dn.defaultBarChartMaxBarHeight; //40;
     barHeight = (barHeight > maxBarHeight) ? maxBarHeight : barHeight;
 
     // get the actual height of the chart ....
